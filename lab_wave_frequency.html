@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Frequency, Amplitude & Natural Frequency</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', 'Segoe UI', sans-serif;
+    background: #060c1a;
+    color: #dce7f5;
+    min-width: 600px;
+    padding: 20px 24px 28px;
+  }
+
+  /* ── HEADER ── */
+  .lab-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #162135;
+  }
+  .ucf-badge {
+    background: #FFC904;
+    color: #000;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 9px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  .lab-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #dce7f5;
+    letter-spacing: 0.3px;
+  }
+  .lab-sub {
+    font-size: 11px;
+    color: #8eb4d4;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── LOs ── */
+  .lo-bar {
+    background: rgba(74,158,255,0.07);
+    border: 1px solid rgba(74,158,255,0.2);
+    border-radius: 8px;
+    padding: 11px 16px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .lo-item {
+    font-size: 12px;
+    color: rgba(74,158,255,0.8);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .lo-item::before {
+    content: '▸';
+    color: #4a9eff;
+    flex-shrink: 0;
+  }
+
+  /* ── SECTION LABELS ── */
+  .section-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #FFC904;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .section-note {
+    font-size: 12px;
+    color: #8eb4d4;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: #0b1424;
+    border: 1px solid #162135;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+
+  /* ── SLIDERS ── */
+  .slider-group { display: flex; flex-direction: column; gap: 12px; }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slider-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #dce7f5;
+    width: 130px;
+    flex-shrink: 0;
+  }
+  .slider-label .sub {
+    display: block;
+    font-size: 10px;
+    color: #8eb4d4;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .slider-ends {
+    font-size: 10px;
+    color: #8eb4d4;
+    white-space: nowrap;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 5px;
+    background: #162135;
+    border-radius: 3px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #FFC904;
+    cursor: pointer;
+    border: 2px solid #000;
+    box-shadow: 0 0 6px rgba(255,201,4,0.4);
+  }
+  input[type=range].blue-thumb::-webkit-slider-thumb {
+    background: #4a9eff;
+    box-shadow: 0 0 6px rgba(74,158,255,0.4);
+  }
+  input[type=range].teal-thumb::-webkit-slider-thumb {
+    background: #2dd4bf;
+    box-shadow: 0 0 6px rgba(45,212,191,0.4);
+  }
+
+  /* ── CANVAS WRAPS ── */
+  .canvas-wrap {
+    background: #060c18;
+    border: 1px solid #162135;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .canvas-wrap:last-child { margin-bottom: 0; }
+  .canvas-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #8eb4d4;
+    padding: 7px 12px 5px;
+    border-bottom: 1px solid #0e192e;
+  }
+  canvas { display: block; width: 100%; }
+
+  /* ── NF SECTION ── */
+  .nf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  @media (max-width: 650px) { .nf-grid { grid-template-columns: 1fr; } }
+
+  .primary-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: rgba(255,201,4,0.15);
+    border: 1px solid rgba(255,201,4,0.4);
+    color: #FFC904;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .secondary-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: rgba(58,80,112,0.3);
+    border: 1px solid #5a7a9a;
+    color: #8eb4d4;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── NF READOUT ── */
+  .nf-readout {
+    background: #060c18;
+    border: 1px solid #5a7a9a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .nf-readout .nf-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8eb4d4;
+    margin-bottom: 6px;
+  }
+  .nf-readout .nf-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: #FFC904;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  .nf-track {
+    height: 6px;
+    background: #162135;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+  .nf-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.35s cubic-bezier(0.34,1.2,0.64,1), background 0.3s;
+  }
+  .nf-desc {
+    font-size: 11px;
+    color: #8eb4d4;
+    line-height: 1.5;
+    min-height: 32px;
+  }
+  .nf-speech {
+    font-size: 11px;
+    color: rgba(74,158,255,0.7);
+    line-height: 1.5;
+    padding: 8px 10px;
+    background: rgba(74,158,255,0.05);
+    border: 1px solid rgba(74,158,255,0.15);
+    border-radius: 6px;
+    margin-top: 8px;
+  }
+
+  /* ── FREQ READOUT CHIP ── */
+  .freq-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,201,4,0.08);
+    border: 1px solid rgba(255,201,4,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #FFC904;
+    margin-bottom: 12px;
+  }
+  .freq-chip .fc-label { font-size: 10px; color: #8eb4d4; }
+
+  /* ── DIVIDER ── */
+  hr.div { border: none; border-top: 1px solid #162135; margin: 16px 0; }
+
+  /* ── TIP BOX ── */
+  .tip-box {
+    background: rgba(74,158,255,0.06);
+    border: 1px solid rgba(74,158,255,0.2);
+    border-radius: 7px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: rgba(74,158,255,0.75);
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Nature of Sound Lab</div>
+    <div class="lab-sub">Frequency, Amplitude &amp; Natural Frequency</div>
+  </div>
+</div>
+
+<!-- WAVE EXPLORER SECTION -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">Frequency &amp; Amplitude Wave Explorer</div>
+<div class="section-note">Adjust the sliders and observe how the wave shape and air molecule behavior respond simultaneously.</div>
+
+<div class="card">
+  <div class="slider-group">
+    <div class="slider-row">
+      <span class="slider-label">Frequency
+        <span class="sub">cycles per second (Hz)</span>
+      </span>
+      <span class="slider-ends">Lower</span>
+      <input type="range" id="freqSlider" min="1" max="8" value="3" step="0.5">
+      <span class="slider-ends">Higher</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Amplitude
+        <span class="sub">displacement / energy</span>
+      </span>
+      <span class="slider-ends">Lower</span>
+      <input type="range" id="ampSlider" min="1" max="9" value="5" step="0.5">
+      <span class="slider-ends">Higher</span>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-wrap">
+  <div class="canvas-label">🌊 Wave — transverse view</div>
+  <canvas id="waveCanvas" height="120"></canvas>
+</div>
+<div class="canvas-wrap">
+  <div class="canvas-label">💨 Air molecules — compression &amp; rarefaction</div>
+  <canvas id="compCanvas" height="110"></canvas>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 2: NATURAL FREQUENCY
+══════════════════════════════════════ -->
+<hr class="div">
+
+<div class="section-tag">Part 2</div>
+<div class="section-title">Natural Frequency Explorer</div>
+<div class="section-note">Adjust physical properties and watch how they determine the natural frequency of vibration. The resulting frequency feeds directly into the wave above.</div>
+
+<div class="freq-chip">
+  <span class="fc-label">Current F0 →</span>
+  <span id="freqChip">— Hz</span>
+</div>
+
+<div class="card">
+  <div class="nf-grid">
+
+    <!-- LEFT: sliders -->
+    <div class="slider-group">
+
+      <div>
+        <div style="font-size:12px; font-weight:700; color:#FFC904; margin-bottom:8px;">
+          Tension / Stiffness
+          <span class="primary-badge">Primary — Vocal Folds</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-ends" style="width:32px;">Low</span>
+          <input type="range" id="nfStiff" min="1" max="10" value="5" step="0.1" oninput="updateNF()">
+          <span class="slider-ends" style="width:36px; text-align:right;">High</span>
+        </div>
+        <div style="font-size:10px; color:#8eb4d4; margin-top:3px;">↑ tension = ↑ frequency &nbsp;|&nbsp; CT muscle stretches folds → raises pitch</div>
+      </div>
+
+      <div>
+        <div style="font-size:12px; font-weight:700; color:#FFC904; margin-bottom:8px;">
+          Length
+          <span class="primary-badge">Primary — Vocal Folds</span>
+        </div>
+        <div class="slider-row">
+          <span class="slider-ends" style="width:32px;">Short</span>
+          <input type="range" class="blue-thumb" id="nfLen" min="1" max="10" value="4" step="0.1" oninput="updateNF()">
+          <span class="slider-ends" style="width:36px; text-align:right;">Long</span>
+        </div>
+        <div style="font-size:10px; color:#8eb4d4; margin-top:3px;">↑ length = ↓ frequency &nbsp;|&nbsp; Longer folds (males) → lower F0</div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: readout -->
+    <div>
+      <div class="nf-readout">
+        <div class="nf-label">Relative Natural Frequency</div>
+        <div class="nf-value" id="nfDisplay">—</div>
+        <div class="nf-track">
+          <div class="nf-fill" id="nfFill" style="width:50%;"></div>
+        </div>
+      </div>
+      <div class="nf-desc" id="nfDesc"></div>
+      <div class="nf-speech" id="nfSpeech"></div>
+    </div>
+
+  </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<div class="section-tag">Part 3</div>
+<div class="section-title">Mass, Volume &amp; Density</div>
+<div class="section-note">Density describes how much mass is packed into a given volume. Adjust both sliders and observe how the square and dot pattern change. Volume controls the square size — mass controls the number of dots inside.</div>
+
+<div class="freq-chip" style="border-color:rgba(45,212,191,0.3); background:rgba(45,212,191,0.06);">
+  <span class="fc-label" style="color:#8eb4d4;">ρ = m ÷ V →</span>
+  <span id="densChip" style="color:#2dd4bf;">— units</span>
+</div>
+
+<div class="card">
+  <div class="nf-grid">
+
+    <!-- LEFT: sliders + formula -->
+    <div>
+      <div class="slider-group">
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <span style="font-size:12px; font-weight:700; color:#FFC904;">Mass</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; color:#FFC904;" id="dMassVal">5 units</span>
+          </div>
+          <div style="font-size:10px; color:#8eb4d4; margin-bottom:6px;">Amount of matter — shown as dots inside the volume</div>
+          <div class="slider-row">
+            <span class="slider-ends">Less</span>
+            <input type="range" id="dMassSlider" min="1" max="50" value="5" step="1" oninput="updateDensity()">
+            <span class="slider-ends">More</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <span style="font-size:12px; font-weight:700; color:#4a9eff;">Volume</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600; color:#4a9eff;" id="dVolVal">5 units</span>
+          </div>
+          <div style="font-size:10px; color:#8eb4d4; margin-bottom:6px;">Amount of space — shown as the size of the square</div>
+          <div class="slider-row">
+            <span class="slider-ends">Smaller</span>
+            <input type="range" class="blue-thumb" id="dVolSlider" min="1" max="10" value="5" step="1" oninput="updateDensity()">
+            <span class="slider-ends">Larger</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Formula -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:16px; background:#060c18; border:1px solid #5a7a9a; border-radius:8px; padding:12px 16px;">
+        <div style="text-align:center;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#2dd4bf; transition:color 0.3s;" id="dFDens">1.00</div>
+          <div style="font-size:9px; color:#8eb4d4; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">Density (ρ)</div>
+        </div>
+        <div style="font-size:20px; color:#8eb4d4;">=</div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+          <div style="text-align:center;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#FFC904;" id="dFMass">5</div>
+            <div style="font-size:9px; color:#8eb4d4; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">Mass (m)</div>
+          </div>
+          <div style="width:100%; height:1px; background:#8eb4d4;"></div>
+          <div style="text-align:center;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#4a9eff;" id="dFVol">5</div>
+            <div style="font-size:9px; color:#8eb4d4; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">Volume (V)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Density readout -->
+      <div style="text-align:center; padding:14px 12px; background:#060c18; border-radius:8px; border:1px solid #5a7a9a; margin-top:12px;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#8eb4d4; margin-bottom:6px;">Density — ρ = m ÷ V</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:38px; font-weight:700; line-height:1; transition:color 0.3s;" id="dDensVal">1.00</div>
+        <div style="font-size:11px; color:#8eb4d4; margin-top:4px;">units of mass per unit of volume</div>
+        <div style="height:5px; background:#162135; border-radius:3px; overflow:hidden; margin:10px 0 4px;">
+          <div style="height:100%; border-radius:3px; transition:width 0.35s cubic-bezier(0.34,1.2,0.64,1), background 0.3s;" id="dDensBar"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:#8eb4d4;">
+          <span>Low density</span><span>High density</span>
+        </div>
+      </div>
+
+      <div style="font-size:11px; color:#8eb4d4; line-height:1.6; padding:10px 12px; background:#060c18; border:1px solid #162135; border-radius:7px; margin-top:10px; min-height:44px; transition:color 0.2s;" id="dDesc">Adjust mass and volume to explore how density changes.</div>
+    </div>
+
+    <!-- RIGHT: canvas -->
+    <div>
+      <div style="background:#060c18; border:1px solid #162135; border-radius:10px; overflow:hidden;">
+        <div style="font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#8eb4d4; padding:8px 12px 6px; border-bottom:1px solid #0e192e;">📦 Volume (size) &amp; Mass (dots)</div>
+        <canvas id="densityCanvas" width="300" height="280" style="width:100%;"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════
+   CANVAS SETUP
+════════════════════════════ */
+const waveCanvas = document.getElementById('waveCanvas');
+const compCanvas = document.getElementById('compCanvas');
+const freqSlider = document.getElementById('freqSlider');
+const ampSlider  = document.getElementById('ampSlider');
+
+let phase = 0;
+let animId = null;
+
+// NF state
+let nfFreqOffset = 0; // added to manual freq slider value
+
+function getFreq() {
+  return parseFloat(freqSlider.value) + nfFreqOffset;
+}
+function getAmp() {
+  return parseFloat(ampSlider.value);
+}
+
+function setupCanvas(c, h) {
+  const dpr = window.devicePixelRatio || 1;
+  const W   = c.offsetWidth || 600;
+  if (c.width !== W * dpr) {
+    c.width  = W * dpr;
+    c.height = h * dpr;
+    c.getContext('2d').scale(dpr, dpr);
+  }
+  return { ctx: c.getContext('2d'), W, H: h };
+}
+
+function drawWave() {
+  const { ctx, W, H } = setupCanvas(waveCanvas, 120);
+  const freq = Math.max(0.5, getFreq());
+  const amp  = getAmp() / 9;
+  const a    = amp * (H/2 - 14);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#060c18'; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(74,158,255,0.05)'; ctx.lineWidth = 1;
+  for (let x=0; x<=W; x+=40) {
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  }
+
+  // Baseline
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Amplitude markers
+  ctx.strokeStyle = 'rgba(255,201,4,0.12)'; ctx.lineWidth=1; ctx.setLineDash([2,6]);
+  ctx.beginPath(); ctx.moveTo(0,H/2-a); ctx.lineTo(W,H/2-a); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H/2+a); ctx.lineTo(W,H/2+a); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Wave
+  const grad = ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'rgba(255,201,4,0.5)');
+  grad.addColorStop(0.5,'rgba(255,201,4,1)');
+  grad.addColorStop(1,'rgba(255,201,4,0.5)');
+  ctx.strokeStyle = grad; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let x=0; x<=W; x++) {
+    const y = H/2 - a * Math.sin(2*Math.PI*freq*x/W - phase);
+    x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = 'rgba(255,201,4,0.35)'; ctx.font = '9px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillText('compression', 6, H/2-a-4);
+  ctx.fillText('rarefaction', 6, H/2+a+12);
+}
+
+function drawCompression() {
+  const { ctx, W, H } = setupCanvas(compCanvas, 110);
+  const freq = Math.max(0.5, getFreq());
+  const amp  = getAmp() / 9;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#060c18'; ctx.fillRect(0,0,W,H);
+
+  const cols = 50, rows = 4;
+  const spX = W/cols, spY = H/(rows+1);
+
+  for (let row=0; row<rows; row++) {
+    for (let col=0; col<cols; col++) {
+      const baseX = (col+0.5)*spX;
+      const baseY = (row+1)*spY;
+      const disp  = amp * spX * 1.3 * Math.sin(2*Math.PI*freq*col/cols - phase);
+      const x     = baseX + disp;
+      const density = Math.sin(2*Math.PI*freq*col/cols - phase);
+      const bright  = 0.35 + density * 0.5 * amp;
+      const r = Math.round(60  + bright * 110);
+      const g = Math.round(110 + bright * 90);
+      const b = 255;
+      const al = Math.min(1, Math.max(0.1, 0.45 + bright * 0.5));
+      ctx.beginPath();
+      ctx.arc(x, baseY, 2.4, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${al.toFixed(2)})`;
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = 'rgba(74,158,255,0.3)'; ctx.font='9px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillText('dense = high pressure', 6, 12);
+  ctx.textAlign='right';
+  ctx.fillText('sparse = low pressure', W-6, 12);
+}
+
+function loop() {
+  drawWave();
+  drawCompression();
+  phase += 0.035;
+  animId = requestAnimationFrame(loop);
+}
+
+/* ════════════════════════════
+   NATURAL FREQUENCY
+════════════════════════════ */
+function updateNF() {
+  const stiff = parseFloat(document.getElementById('nfStiff').value);
+  const len   = parseFloat(document.getElementById('nfLen').value);
+
+  const fRel = Math.sqrt(stiff * 3) / (len * 0.45);
+  const pct  = Math.min(100, Math.max(2, (fRel / 5) * 100));
+
+  const label = fRel < 0.8  ? 'Very Low'  :
+                fRel < 1.5  ? 'Low'        :
+                fRel < 2.5  ? 'Moderate'   :
+                fRel < 3.5  ? 'High'       : 'Very High';
+
+  const color = fRel < 1.2  ? '#4a9eff'  :
+                fRel < 2.5  ? '#FFC904'  :
+                fRel < 3.5  ? '#ff9900'  : '#ff6060';
+
+  document.getElementById('nfDisplay').textContent = label;
+  document.getElementById('nfDisplay').style.color = color;
+  document.getElementById('nfFill').style.width = pct + '%';
+  document.getElementById('nfFill').style.background =
+    `linear-gradient(90deg,#4a9eff,${color})`;
+
+  const desc =
+    stiff > 7 ? 'High tension dominates — the object snaps back rapidly.' :
+    len   > 7 ? 'Long length dominates — more time needed per cycle.' :
+    stiff < 3 ? 'Low tension allows slow, loose vibration.' :
+                'Balanced properties — moderate natural frequency.';
+  document.getElementById('nfDesc').textContent = desc;
+
+  const speech =
+    stiff > 7 ? 'High CT muscle tension stretches the vocal folds → higher F0 → raised pitch.' :
+    stiff < 3 ? 'Low fold tension → lower F0 → lower speaking pitch.' :
+    len   > 7 ? 'Longer vocal folds (e.g. adult male larynx) → lower F0.' :
+    len   < 3 ? 'Short vocal folds (e.g. child) → higher F0.' :
+                'Adjust sliders to see how tension and length interact.';
+  document.getElementById('nfSpeech').textContent = speech;
+
+  const mappedFreq = Math.min(7.5, Math.max(1, fRel * 1.4));
+  nfFreqOffset = mappedFreq - parseFloat(freqSlider.value) * 0.3;
+
+  const approxHz = Math.round(80 + (pct/100) * 340);
+  document.getElementById('freqChip').textContent = approxHz + ' Hz (relative)';
+}
+
+/* ════════════════════════════
+   INIT
+════════════════════════════ */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    updateNF();
+    initDensityCanvas();
+    updateDensity();
+    loop();
+  }, 80);
+});
+
+/* ════════════════════════════
+   DENSITY (PART 3)
+════════════════════════════ */
+const MAX_DENS_DOTS = 50;
+const densDotPos = [];
+
+function seededRand(seed) {
+  const x = Math.sin(seed + 1) * 43758.5453123;
+  return x - Math.floor(x);
+}
+for (let i = 0; i < MAX_DENS_DOTS; i++) {
+  densDotPos.push({ rx: seededRand(i*3+1), ry: seededRand(i*3+2) });
+}
+
+function initDensityCanvas() {
+  const canvas = document.getElementById('densityCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.parentElement ? canvas.parentElement.offsetWidth : 300;
+  const H   = 280;
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  canvas.style.height = H + 'px';
+}
+
+function drawDensityCanvas(mass, vol) {
+  const canvas = document.getElementById('densityCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W   = canvas.width  / dpr;
+  const H   = canvas.height / dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+
+  const dens  = mass / vol;
+  const pct   = Math.min(1, dens / 4);
+  const minSz = 55, maxSz = Math.min(W,H) - 40;
+  const sqSz  = minSz + ((vol-1)/9)*(maxSz-minSz);
+  const sqX   = (W-sqSz)/2, sqY = (H-sqSz)/2;
+
+  const r = Math.round(74  + pct*180);
+  const g = Math.round(158 - pct*100);
+  const b = Math.round(255 - pct*180);
+  const sq = `rgba(${r},${g},${b},1)`;
+
+  ctx.fillStyle = `rgba(${r},${g},${b},0.07)`; ctx.fillRect(sqX,sqY,sqSz,sqSz);
+  ctx.strokeStyle = sq; ctx.lineWidth=2; ctx.strokeRect(sqX,sqY,sqSz,sqSz);
+
+  ctx.fillStyle=`rgba(${r},${g},${b},0.6)`; ctx.font='10px IBM Plex Mono'; ctx.textAlign='center';
+  ctx.fillText(`V = ${vol}`, sqX+sqSz/2, sqY+sqSz+14);
+  ctx.fillText(`m = ${mass} dots`, sqX+sqSz/2, sqY-8);
+
+  const dotR  = Math.max(2.5, 5 - vol*0.2);
+  const margin = dotR + 4;
+  for (let i=0; i<mass; i++) {
+    const dx = sqX + margin + densDotPos[i].rx*(sqSz-margin*2);
+    const dy = sqY + margin + densDotPos[i].ry*(sqSz-margin*2);
+    ctx.beginPath(); ctx.arc(dx,dy,dotR,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${r},${g},${b},0.85)`; ctx.fill();
+  }
+
+  const tk=8; ctx.strokeStyle=`rgba(${r},${g},${b},0.25)`; ctx.lineWidth=1;
+  [[sqX,sqY],[sqX+sqSz,sqY],[sqX,sqY+sqSz],[sqX+sqSz,sqY+sqSz]].forEach(([cx,cy],i)=>{
+    const sx=i%2===0?1:-1, sy=i<2?1:-1;
+    ctx.beginPath(); ctx.moveTo(cx,cy+sy*tk); ctx.lineTo(cx,cy); ctx.lineTo(cx+sx*tk,cy); ctx.stroke();
+  });
+}
+
+function updateDensity() {
+  const mass = parseInt(document.getElementById('dMassSlider').value);
+  const vol  = parseInt(document.getElementById('dVolSlider').value);
+  const dens = mass / vol;
+  const pct  = Math.min(100,(dens/4)*100);
+
+  document.getElementById('dMassVal').textContent = mass+' units';
+  document.getElementById('dVolVal').textContent  = vol+' units';
+  document.getElementById('dFMass').textContent   = mass;
+  document.getElementById('dFVol').textContent    = vol;
+  document.getElementById('dFDens').textContent   = dens.toFixed(2);
+  document.getElementById('dDensVal').textContent = dens.toFixed(2);
+  document.getElementById('densChip').textContent = dens.toFixed(2)+' units';
+
+  const color = dens<0.8?'#4a9eff':dens<1.5?'#2dd4bf':dens<2.5?'#FFC904':dens<3.5?'#ff9900':'#ff6060';
+  document.getElementById('dDensVal').style.color  = color;
+  document.getElementById('dFDens').style.color    = color;
+  document.getElementById('densChip').style.color  = color;
+  document.getElementById('dDensBar').style.width  = pct+'%';
+  document.getElementById('dDensBar').style.background = `linear-gradient(90deg,#4a9eff,${color})`;
+
+  const desc =
+    dens<0.5  ? 'Very low density — large volume, small mass. Molecules are spread far apart.' :
+    dens<1.0  ? 'Low density — more space than matter. Air at rest is a good example.' :
+    dens<1.5  ? 'Moderate density — mass and volume are roughly balanced.' :
+    dens<2.5  ? 'High density — more mass packed into the same space. Molecules are closer together.' :
+    dens<3.5  ? 'Very high density — tightly packed matter. Think of compression zones in a sound wave.' :
+                'Extremely high density — maximum compression. This is the peak of a compression zone.';
+  document.getElementById('dDesc').textContent = desc;
+  document.getElementById('dDesc').style.color = color;
+
+  drawDensityCanvas(mass, vol);
+}
+
+window.addEventListener('resize', () => {
+  [waveCanvas, compCanvas].forEach(c => { c.width = 0; });
+  initDensityCanvas();
+  updateDensity();
+});
+</script>
+
+<div style="text-align:center; padding:14px 0 4px; font-size:10px; color:#5a7a9a; letter-spacing:0.5px;">
+  © 2025 Adam Reres
+</div>
+
+</body>
+</html>

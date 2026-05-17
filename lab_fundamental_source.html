@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Fundamental Source of Speech</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Exo 2','Segoe UI',sans-serif; background:#060c1a; color:#dce7f5; min-width:600px; padding:20px 24px 20px; }
+
+  .lab-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid #162135; }
+  .ucf-badge  { background:#FFC904; color:#000; font-weight:800; font-size:12px; padding:4px 9px; border-radius:4px; letter-spacing:1px; flex-shrink:0; }
+  .lab-title  { font-size:15px; font-weight:700; color:#dce7f5; }
+  .lab-sub    { font-size:11px; color:#8eb4d4; letter-spacing:1px; text-transform:uppercase; }
+
+  .section-tag   { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#FFC904; margin-bottom:5px; }
+  .section-title { font-size:18px; font-weight:700; color:#fff; margin-bottom:4px; }
+  .section-note  { font-size:13px; color:#8eb4d4; margin-bottom:14px; line-height:1.55; }
+  hr.div         { border:none; border-top:1px solid #162135; margin:20px 0; }
+
+  .card       { background:#0b1424; border:1px solid #162135; border-radius:10px; padding:16px 18px; margin-bottom:14px; }
+  .two-col    { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+  @media(max-width:650px){ .two-col { grid-template-columns:1fr; } }
+
+  .vis-wrap { background:#060c18; border:1px solid #162135; border-radius:10px; overflow:hidden; }
+  .vis-lbl  { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#8eb4d4; padding:8px 12px 5px; border-bottom:1px solid #0e192e; }
+  canvas    { display:block; width:100%; }
+
+  /* Sliders */
+  .slider-block { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .slider-top   { display:flex; justify-content:space-between; align-items:baseline; }
+  .slider-name  { font-size:13px; font-weight:700; color:#dce7f5; }
+  .slider-val   { font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; }
+  .slider-hint  { font-size:11px; color:#8eb4d4; }
+  .slider-row   { display:flex; align-items:center; gap:8px; margin-top:5px; }
+  .slider-ends  { font-size:11px; color:#8eb4d4; white-space:nowrap; }
+  input[type=range] { -webkit-appearance:none; flex:1; height:5px; background:#162135; border-radius:3px; outline:none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid #000; }
+  .gold-thumb::-webkit-slider-thumb { background:#FFC904; box-shadow:0 0 6px rgba(255,201,4,0.4); }
+  .blue-thumb::-webkit-slider-thumb { background:#4a9eff; box-shadow:0 0 6px rgba(74,158,255,0.4); }
+  .red-thumb::-webkit-slider-thumb  { background:#ff6060; box-shadow:0 0 6px rgba(255,96,96,0.4); }
+
+  /* Readout chips */
+  .readout-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .chip { flex:1; min-width:90px; text-align:center; background:#060c18; border:1px solid #162135; border-radius:8px; padding:9px 10px; }
+  .chip .cl { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#8eb4d4; margin-bottom:3px; }
+  .chip .cv { font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; transition:color 0.25s; }
+
+  /* Muscle buttons */
+  .muscle-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+  @media(max-width:650px){ .muscle-grid { grid-template-columns:repeat(3,1fr); } }
+  .m-btn {
+    padding:10px 6px; border-radius:8px; border:1px solid #162135;
+    background:#060c18; color:#8eb4d4; font-family:'Exo 2',sans-serif;
+    font-size:12px; font-weight:700; cursor:pointer; text-align:center;
+    transition:all 0.15s; text-transform:uppercase; letter-spacing:0.5px; line-height:1.3;
+  }
+  .m-btn:hover { border-color:#8eb4d4; color:#dce7f5; }
+  .m-btn.active-adduct { border-color:#4a9eff; color:#4a9eff; background:rgba(74,158,255,0.1); }
+  .m-btn.active-abduct { border-color:#ff6060; color:#ff6060; background:rgba(255,96,96,0.1); }
+  .m-btn.active-tensor { border-color:#FFC904; color:#FFC904; background:rgba(255,201,4,0.1); }
+  .m-btn.active-body   { border-color:#2dd4bf; color:#2dd4bf; background:rgba(45,212,191,0.1); }
+
+  .muscle-info { background:#060c18; border:1px solid #162135; border-radius:8px; padding:14px; min-height:80px; }
+  .muscle-info .mi-name { font-size:14px; font-weight:700; margin-bottom:6px; }
+  .muscle-info .mi-type { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:2px 8px; border-radius:4px; display:inline-block; margin-bottom:8px; }
+  .muscle-info .mi-desc { font-size:13px; color:#8eb4d4; line-height:1.6; }
+
+  /* MEAD */
+  .mead-wrap { background:#0b1424; border:1px solid #162135; border-radius:10px; overflow:hidden; }
+  .mead-hdr  { background:#0a1322; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #162135; }
+  .step-dots { display:flex; gap:5px; }
+  .sdot { width:7px; height:7px; border-radius:50%; background:#162135; cursor:pointer; transition:all 0.2s; }
+  .sdot.active { background:#FFC904; transform:scale(1.3); }
+  .mead-nav  { display:flex; gap:8px; }
+  .nav-btn   { background:#060c18; border:1px solid #162135; color:#dce7f5; font-family:'Exo 2',sans-serif; font-weight:700; font-size:11px; padding:6px 13px; border-radius:6px; cursor:pointer; transition:all 0.15s; }
+  .nav-btn:hover:not(:disabled) { border-color:#FFC904; color:#FFC904; }
+  .nav-btn:disabled { opacity:0.3; cursor:default; }
+  .mead-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  @media(max-width:600px){ .mead-body { grid-template-columns:1fr; } }
+  .mead-svg-panel { background:#070e1c; border-right:1px solid #162135; padding:16px; display:flex; align-items:center; justify-content:center; min-height:220px; }
+  .mead-svg-panel svg { max-width:220px; width:100%; }
+  .mead-txt { padding:20px 18px; }
+  .mead-lbl { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#4a9eff; margin-bottom:5px; }
+  .mead-ttl { font-size:17px; font-weight:700; color:#fff; margin-bottom:8px; line-height:1.3; }
+  .mead-dsc { font-size:12px; color:#8eb4d4; line-height:1.65; margin-bottom:10px; }
+  .mead-hl  { border-radius:7px; padding:9px 12px; font-size:12px; font-weight:700; }
+
+  .gauge-row { display:flex; flex-direction:column; gap:7px; margin-bottom:10px; }
+  .gauge-item { display:flex; align-items:center; gap:10px; }
+  .gauge-lbl  { font-size:12px; color:#8eb4d4; width:130px; flex-shrink:0; font-weight:500; }
+  .gauge-track{ flex:1; height:7px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; border:1px solid #162135; }
+  .gauge-fill { height:100%; border-radius:4px; transition:width 0.5s cubic-bezier(0.34,1.2,0.64,1); }
+  .gf-press { background:linear-gradient(90deg,#4a9eff,#ff9900); }
+  .gf-vel   { background:linear-gradient(90deg,#2dd4bf,#4ade80); }
+  .gauge-val  { font-family:'IBM Plex Mono',monospace; font-size:12px; width:80px; text-align:right; flex-shrink:0; color:#8eb4d4; transition:color 0.3s; }
+
+  /* Desc box */
+  .desc-box { font-size:13px; color:#8eb4d4; line-height:1.6; padding:10px 12px; background:#060c18; border:1px solid #162135; border-radius:7px; min-height:40px; transition:color 0.2s; }
+
+  /* Footer */
+  .footer { text-align:center; padding:14px 0 2px; font-size:10px; color:#5a7a9a; letter-spacing:0.5px; }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Fundamental Source of Speech Lab</div>
+    <div class="lab-sub">Laryngeal Muscles · MEAD · Bernoulli · Frequency &amp; Intensity</div>
+  </div>
+</div>
+
+<!-- ════ PART 1 — MUSCLES ════ -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">Intrinsic Laryngeal Muscles</div>
+<div class="section-note">Select a muscle to see its function, attachment points, and effect on the vocal folds. Color indicates function type.</div>
+
+<div class="card">
+  <div class="muscle-grid" id="muscleGrid"></div>
+  <div class="two-col">
+    <div>
+      <div class="muscle-info" id="muscleInfo">
+        <div class="mi-desc" style="color:#5a7a9a;">Select a muscle above to explore its function.</div>
+      </div>
+    </div>
+    <div class="vis-wrap">
+      <div class="vis-lbl">🫀 Posterior to Anterior View</div>
+      <canvas id="larynxCanvas" width="300" height="280" style="width:100%;"></canvas>
+    </div>
+    <div class="vis-wrap" style="margin-top:10px;">
+      <div class="vis-lbl">🔭 Superior to Inferior View</div>
+      <canvas id="superiorCanvas" width="300" height="170" style="width:100%;"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PART 2 — MEAD ════ -->
+<hr class="div">
+<div class="section-tag">Part 2</div>
+<div class="section-title">Myoelastic-Aerodynamic Theory (MEAD)</div>
+<div class="section-note">Step through the phonation cycle. Each step shows what the muscles, air pressure, and Bernoulli force are doing.</div>
+
+<div class="mead-wrap">
+  <div class="mead-hdr">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="step-dots" id="meadDots"></div>
+      <span style="font-size:11px; color:#8eb4d4; font-family:'IBM Plex Mono',monospace;" id="meadCounter">1 / 6</span>
+    </div>
+    <div class="mead-nav">
+      <button class="nav-btn" id="meadPrev" onclick="meadNav(-1)" disabled>← Prev</button>
+      <button class="nav-btn" id="meadLoop" onclick="toggleMEADLoop()" style="border-color:#2dd4bf; color:#2dd4bf;">▶ Loop</button>
+      <button class="nav-btn" id="meadNext" onclick="meadNav(1)">Next →</button>
+    </div>
+  </div>
+  <div class="mead-body">
+    <div class="mead-svg-panel" id="meadSVG"></div>
+    <div class="mead-txt">
+      <div class="mead-lbl" id="meadLbl">Step 1 of 6</div>
+      <div class="gauge-row">
+        <div class="gauge-item">
+          <span class="gauge-lbl">Subglottal Pressure</span>
+          <div class="gauge-track"><div class="gauge-fill gf-press" id="pressFill"></div></div>
+          <span class="gauge-val" id="pressVal">Resting</span>
+        </div>
+        <div class="gauge-item">
+          <span class="gauge-lbl">Airflow Velocity</span>
+          <div class="gauge-track"><div class="gauge-fill gf-vel" id="velFill"></div></div>
+          <span class="gauge-val" id="velVal">None</span>
+        </div>
+      </div>
+      <div class="mead-ttl" id="meadTitle"></div>
+      <div class="mead-dsc" id="meadDesc"></div>
+      <div class="mead-hl" id="meadHL"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PART 3 — BERNOULLI ════ -->
+<hr class="div">
+<div class="section-tag">Part 3</div>
+<div class="section-title">Bernoulli's Principle at the Glottis</div>
+<div class="section-note">As airflow speeds up through the narrow glottis, pressure drops. This low pressure pulls the vocal folds inward — the aerodynamic half of MEAD. Dot spacing shows velocity: widely spaced dots = fast air = low pressure.</div>
+
+<div class="card">
+  <div class="two-col">
+    <div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name">Airflow Speed</span>
+          <span class="slider-val" id="bernSpeedLabel" style="color:#2dd4bf;">Low</span>
+        </div>
+        <div class="slider-hint">Adjust airflow through the glottis</div>
+        <div class="slider-row">
+          <span class="slider-ends">Slow</span>
+          <input type="range" class="blue-thumb" id="bernSlider" min="0" max="10" value="2" step="0.1" oninput="updateBernoulli()">
+          <span class="slider-ends">Fast</span>
+        </div>
+      </div>
+      <div class="readout-row">
+        <div class="chip"><div class="cl">Velocity</div><div class="cv" id="bernVelOut" style="color:#2dd4bf;">Low</div></div>
+        <div class="chip"><div class="cl">Glottal Pressure</div><div class="cv" id="bernPressOut" style="color:#8eb4d4;">Normal</div></div>
+        <div class="chip"><div class="cl">Effect</div><div class="cv" id="bernEffOut" style="color:#8eb4d4; font-size:11px;">No draw</div></div>
+      </div>
+      <div class="desc-box" id="bernDesc">Increase airflow speed to see Bernoulli's principle take effect at the glottis.</div>
+    </div>
+    <div class="vis-wrap">
+      <div class="vis-lbl">💨 Glottis cross-section — dot spacing = velocity</div>
+      <canvas id="bernCanvas" width="300" height="260" style="width:100%;"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PART 4 — FREQUENCY & INTENSITY ════ -->
+<hr class="div">
+<div class="section-tag">Part 4</div>
+<div class="section-title">Frequency &amp; Intensity</div>
+<div class="section-note">CT muscle tension controls vocal fold stiffness → changes F0 → perceived as pitch. Subglottal pressure (Psub) controls how far folds are pushed open → changes amplitude → perceived as loudness. Both affect the wave simultaneously.</div>
+
+<div class="card">
+  <div class="two-col">
+    <div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name">CT Tension</span>
+          <span class="slider-val" id="ctLabel" style="color:#FFC904;">Mid</span>
+        </div>
+        <div class="slider-hint">Cricothyroid muscle → stretches folds → changes F0</div>
+        <div class="slider-row">
+          <span class="slider-ends">Low</span>
+          <input type="range" class="gold-thumb" id="ctSlider" min="1" max="10" value="5" step="0.1" oninput="updatePhonation()">
+          <span class="slider-ends">High</span>
+        </div>
+      </div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name">Subglottal Pressure (Psub)</span>
+          <span class="slider-val" id="psubLabel" style="color:#ff6060;">Mid</span>
+        </div>
+        <div class="slider-hint">Respiratory pressure → controls amplitude → loudness</div>
+        <div class="slider-row">
+          <span class="slider-ends">Low</span>
+          <input type="range" class="red-thumb" id="psubSlider" min="1" max="9" value="4" step="0.1" oninput="updatePhonation()">
+          <span class="slider-ends">High</span>
+        </div>
+      </div>
+      <div class="readout-row">
+        <div class="chip"><div class="cl">F0</div><div class="cv" id="f0Out" style="color:#FFC904;">—</div></div>
+        <div class="chip"><div class="cl">Pitch</div><div class="cv" id="pitchOut" style="color:#FFC904;">Mid</div></div>
+        <div class="chip"><div class="cl">Amplitude</div><div class="cv" id="ampOut" style="color:#ff6060;">—</div></div>
+        <div class="chip"><div class="cl">Loudness</div><div class="cv" id="loudOut" style="color:#ff6060;">Mid</div></div>
+      </div>
+      <div class="desc-box" id="phonDesc">Adjust CT tension and Psub to see how they independently control frequency and amplitude.</div>
+    </div>
+    <div>
+      <div class="vis-wrap" style="margin-bottom:10px;">
+        <div class="vis-lbl">🌊 Resulting sound wave</div>
+        <canvas id="phonCanvas" width="300" height="160" style="width:100%;"></canvas>
+      </div>
+      <div style="background:#060c18; border:1px solid #162135; border-radius:8px; padding:12px 14px; font-size:11px; color:#8eb4d4; line-height:1.7;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div><span style="color:#FFC904; font-weight:700;">CT ↑</span> → tension ↑ → F0 ↑ → Pitch ↑</div>
+          <div><span style="color:#FFC904; font-weight:700;">CT ↓</span> → tension ↓ → F0 ↓ → Pitch ↓</div>
+          <div><span style="color:#ff6060; font-weight:700;">Psub ↑</span> → amplitude ↑ → Loudness ↑</div>
+          <div><span style="color:#ff6060; font-weight:700;">Psub ↓</span> → amplitude ↓ → Loudness ↓</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">© 2025 Adam Reres</div>
+
+<script>
+/* ════════════════════════
+   UTILITIES
+════════════════════════ */
+function initC(id) {
+  const c=document.getElementById(id); if(!c) return null;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.parentElement?c.parentElement.offsetWidth:300;
+  const H=parseInt(c.getAttribute('height'))||220;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); c.style.height=H+'px';
+  return c;
+}
+function gCtx(id) {
+  const c=document.getElementById(id); if(!c) return {ctx:null,W:0,H:0};
+  const dpr=window.devicePixelRatio||1;
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,W:c.width/dpr,H:c.height/dpr};
+}
+function sr(s){const x=Math.sin(s+1)*43758.5453123;return x-Math.floor(x);}
+
+/* ════════════════════════
+   PART 1 — MUSCLES
+════════════════════════ */
+const muscles = {
+  IA:  { name:'Interarytenoid (IA)',  type:'adduct', typeLabel:'Adductor', color:'#4a9eff',
+         paired:false, attach:'Arytenoid to arytenoid (transverse + oblique fibers)',
+         action:'Pulls arytenoids toward each other — closes the posterior glottis.',
+         result:'Adducts vocal folds. Works with LCA to achieve full medial compression.',
+         foldState:'adducted' },
+  LCA: { name:'Lateral Cricoarytenoid (LCA)', type:'adduct', typeLabel:'Adductor', color:'#4a9eff',
+         paired:true, attach:'Lateral cricoid → muscular process of arytenoid',
+         action:'Rotates arytenoids inward, pulling vocal processes toward midline.',
+         result:'Adducts vocal folds. Primary source of medial compression during phonation.',
+         foldState:'adducted' },
+  PCA: { name:'Posterior Cricoarytenoid (PCA)', type:'abduct', typeLabel:'Abductor ★', color:'#ff6060',
+         paired:true, attach:'Posterior cricoid → muscular process of arytenoid',
+         action:'Rotates arytenoids outward, pulling vocal processes apart.',
+         result:'The ONLY muscle that opens (abducts) the vocal folds. Essential for breathing.',
+         foldState:'abducted' },
+  CT:  { name:'Cricothyroid (CT)',    type:'tensor', typeLabel:'Tensor', color:'#FFC904',
+         paired:true, attach:'Anterior cricoid → inferior thyroid cartilage',
+         action:'Rocks the cricoid posteriorly, stretching and elongating the vocal folds.',
+         result:'Primary pitch changer. Increases F0 by raising tension and reducing mass per unit area.',
+         foldState:'tensed' },
+  TA:  { name:'Thyroarytenoid (TA)', type:'body', typeLabel:'VF Body / Relaxer', color:'#2dd4bf',
+         paired:true, attach:'Anterior commissure of thyroid → arytenoid cartilage',
+         action:'Forms the bulk of the vocal fold. Muscularis shortens/relaxes; Vocalis stiffens.',
+         result:'Adjusts fold tension and mass. Works antagonistically with CT to fine-tune F0.',
+         foldState:'body' }
+};
+
+let selMuscle = null;
+
+function buildMuscleGrid() {
+  const g = document.getElementById('muscleGrid');
+  g.innerHTML = '';
+  Object.entries(muscles).forEach(([key,m])=>{
+    const btn = document.createElement('button');
+    btn.className = 'm-btn';
+    btn.id = 'mbtn-'+key;
+    btn.innerHTML = `<div>${key}<\/div><div style="font-size:9px;font-weight:400;color:${m.color};margin-top:2px;">${m.typeLabel}<\/div>`;
+    btn.onclick = ()=>selectMuscle(key);
+    g.appendChild(btn);
+  });
+}
+
+/* ────────────────────────────
+   SUPERIOR TO INFERIOR VIEW
+──────────────────────────── */
+function drawSuperior(key) {
+  const {ctx,W,H} = gCtx('superiorCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createRadialGradient(W/2,H/2,10,W/2,H/2,H*0.8);
+  bg.addColorStop(0,'#0d1830'); bg.addColorStop(1,'#060c18');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, acY=20, aryY=H-22;
+  const m=key?muscles[key]:null, mc=m?m.color:'rgba(210,140,120,0.7)';
+  const isAbduct = key==='PCA';
+  const foldGap  = isAbduct ? 24 : 1;
+
+  // Laryngeal inlet oval
+  ctx.beginPath(); ctx.ellipse(cx, H/2+4, 74, H/2-10, 0, 0, Math.PI*2);
+  ctx.fillStyle='rgba(74,158,255,0.04)'; ctx.fill();
+  ctx.strokeStyle='rgba(142,180,212,0.18)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Vocal folds — elongated leaf shapes running ant→post
+  const drawFold = (side) => {
+    const sg = side * foldGap * 0.55;
+    const sg2= side * foldGap;
+    ctx.beginPath();
+    ctx.moveTo(cx, acY);
+    ctx.bezierCurveTo(cx+sg, acY+18, cx+sg2-side*2, aryY-28, cx+sg2, aryY-14);
+    ctx.bezierCurveTo(cx+side*38+sg2*0.3, aryY-18, cx+side*36, acY+22, cx, acY);
+    ctx.closePath();
+    let fc, sc;
+    if(key==='TA'){      fc='rgba(45,212,191,0.32)';  sc='rgba(45,212,191,0.8)'; }
+    else if(key==='CT'){ fc='rgba(255,201,4,0.18)';   sc='rgba(255,201,4,0.7)'; }
+    else if(isAbduct){   fc='rgba(255,96,96,0.2)';    sc='rgba(255,96,96,0.75)'; }
+    else if(key==='IA'||key==='LCA'){ fc='rgba(74,158,255,0.22)'; sc='rgba(74,158,255,0.75)'; }
+    else {               fc='rgba(210,140,120,0.28)'; sc='rgba(210,140,120,0.65)'; }
+    ctx.fillStyle=fc; ctx.fill();
+    ctx.strokeStyle=sc; ctx.lineWidth=1.8; ctx.stroke();
+    // Mucosa highlight along free edge
+    ctx.beginPath();
+    ctx.moveTo(cx, acY+4);
+    ctx.bezierCurveTo(cx+sg*0.8, acY+20, cx+sg2*0.8-side*2, aryY-32, cx+sg2*0.8, aryY-18);
+    ctx.strokeStyle=key?sc.replace('0.75','0.3').replace('0.8','0.3'):'rgba(255,220,200,0.2)';
+    ctx.lineWidth=1; ctx.stroke();
+  };
+  drawFold(-1); drawFold(1);
+
+  // Arytenoid cartilages — posterior
+  const layX=cx-18-foldGap*0.7, rayX=cx+18+foldGap*0.7;
+  const aryA=key==='IA'||key==='LCA'||key==='PCA';
+  [[layX,false],[rayX,true]].forEach(([ax])=>{
+    ctx.beginPath(); ctx.ellipse(ax,aryY-6,11,8,0,0,Math.PI*2);
+    ctx.fillStyle=aryA?'rgba(160,140,200,0.38)':'rgba(160,140,200,0.15)';
+    ctx.fill();
+    ctx.strokeStyle=aryA?'rgba(160,140,200,0.8)':'rgba(160,140,200,0.35)';
+    ctx.lineWidth=1.5; ctx.stroke();
+  });
+
+  // Anterior commissure dot
+  ctx.beginPath(); ctx.arc(cx, acY, 3.5, 0, Math.PI*2);
+  ctx.fillStyle='rgba(142,180,212,0.5)'; ctx.fill();
+  ctx.fillStyle='rgba(142,180,212,0.55)'; ctx.font='bold 8px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('Ant. Commissure', cx, acY-7);
+
+  // Arytenoid label
+  ctx.fillStyle='rgba(160,140,200,0.5)'; ctx.font='8px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('Arytenoids', cx, H-5);
+
+  // Glottis label when open
+  if(foldGap>4){
+    ctx.fillStyle='rgba(45,212,191,0.6)'; ctx.font='bold 8px IBM Plex Mono'; ctx.textAlign='center';
+    ctx.fillText('GLOTTIS', cx, H/2+4);
+  }
+
+  // Muscle-specific overlays
+  if(key&&mc){
+    ctx.save(); ctx.shadowColor=mc; ctx.shadowBlur=6;
+    if(key==='IA'){
+      ctx.strokeStyle=mc; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(layX+8,aryY-6); ctx.lineTo(rayX-8,aryY-6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(layX+6,aryY-11); ctx.lineTo(rayX-6,aryY-1); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(layX+6,aryY-1); ctx.lineTo(rayX-6,aryY-11); ctx.stroke();
+    }
+    if(key==='LCA'){
+      drawArrowD(ctx,cx-30,aryY-6,cx-10,aryY-6,mc,2);
+      drawArrowD(ctx,cx+30,aryY-6,cx+10,aryY-6,mc,2);
+    }
+    if(key==='PCA'){
+      drawArrowD(ctx,cx-10,aryY-6,cx-32,aryY-6,mc,2);
+      drawArrowD(ctx,cx+10,aryY-6,cx+32,aryY-6,mc,2);
+    }
+    if(key==='CT'){
+      ctx.strokeStyle=mc; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(cx-4,acY+8); ctx.lineTo(cx-4,aryY-20); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+4,acY+8); ctx.lineTo(cx+4,aryY-20); ctx.stroke();
+      ctx.setLineDash([]);
+      drawArrowD(ctx,cx-4,acY+10,cx-4,aryY-22,mc,1.5);
+      drawArrowD(ctx,cx+4,acY+10,cx+4,aryY-22,mc,1.5);
+    }
+    ctx.restore();
+  }
+}
+
+function selectMuscle(key) {
+  selMuscle = key;
+  const m = muscles[key];
+  // Update buttons
+  Object.keys(muscles).forEach(k=>{
+    const b=document.getElementById('mbtn-'+k);
+    b.className='m-btn';
+    if(k===key) b.classList.add('active-'+m.type);
+  });
+  // Update info panel
+  const typeColors={'adduct':'#4a9eff','abduct':'#ff6060','tensor':'#FFC904','body':'#2dd4bf'};
+  const typeAlpha={'adduct':'rgba(74,158,255,0.15)','abduct':'rgba(255,96,96,0.15)','tensor':'rgba(255,201,4,0.15)','body':'rgba(45,212,191,0.15)'};
+  document.getElementById('muscleInfo').innerHTML=`
+    <div class="mi-name" style="color:${m.color};">${m.name}<\/div>
+    <span class="mi-type" style="background:${typeAlpha[m.type]};color:${m.color};">${m.typeLabel}<\/span>
+    <div class="mi-desc"><strong style="color:#dce7f5;">Paired: <\/strong>${m.paired?'Yes (bilateral)':'No (single midline muscle)'}<\/div>
+    <div class="mi-desc" style="margin-top:5px;"><strong style="color:#dce7f5;">Attachments: <\/strong>${m.attach}<\/div>
+    <div class="mi-desc" style="margin-top:5px;"><strong style="color:#dce7f5;">Action: <\/strong>${m.action}<\/div>
+    <div class="mi-desc" style="margin-top:5px; color:${m.color}; font-weight:600;">↳ ${m.result}<\/div>
+  `;
+  drawLarynx(key);
+  drawSuperior(key);
+}
+
+function drawArrowD(ctx,x1,y1,x2,y2,col,lw){
+  const a=Math.atan2(y2-y1,x2-x1);
+  ctx.strokeStyle=col; ctx.lineWidth=lw;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2-8*Math.cos(a-0.4),y2-8*Math.sin(a-0.4));
+  ctx.lineTo(x2,y2);
+  ctx.lineTo(x2-8*Math.cos(a+0.4),y2-8*Math.sin(a+0.4));
+  ctx.stroke();
+}
+
+function drawLarynx(key) {
+  const {ctx,W,H}=gCtx('larynxCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,H*0.7);
+  bg.addColorStop(0,'#0d1830'); bg.addColorStop(1,'#060c18');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, m=key?muscles[key]:null, mc=m?m.color:null;
+  const foldGap=key==='PCA'?20:2;
+
+  // ── THYROID CARTILAGE ──
+  ctx.beginPath();
+  ctx.moveTo(cx,28);
+  ctx.bezierCurveTo(cx-8,28,cx-46,42,cx-72,62);
+  ctx.bezierCurveTo(cx-80,75,cx-78,102,cx-70,128);
+  ctx.lineTo(cx-44,148);
+  ctx.bezierCurveTo(cx-40,160,cx-32,168,cx-24,168);
+  ctx.lineTo(cx+24,168);
+  ctx.bezierCurveTo(cx+32,168,cx+40,160,cx+44,148);
+  ctx.lineTo(cx+70,128);
+  ctx.bezierCurveTo(cx+78,102,cx+80,75,cx+72,62);
+  ctx.bezierCurveTo(cx+46,42,cx+8,28,cx,28);
+  ctx.closePath();
+  ctx.fillStyle=key==='CT'?'rgba(255,201,4,0.18)':'rgba(180,160,120,0.14)';
+  ctx.fill();
+  ctx.strokeStyle=key==='CT'?'rgba(255,201,4,0.7)':'rgba(180,160,120,0.45)';
+  ctx.lineWidth=1.8; ctx.stroke();
+  ctx.fillStyle=key==='CT'?'rgba(255,201,4,0.65)':'rgba(180,160,120,0.5)';
+  ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('THYROID CARTILAGE', cx-46, 52);
+
+  // ── CRICOID ──
+  ctx.beginPath(); ctx.ellipse(cx,198,62,24,0,0,Math.PI*2);
+  const crA=key==='CT'||key==='LCA'||key==='PCA';
+  ctx.fillStyle=crA?'rgba(140,180,150,0.22)':'rgba(140,180,150,0.1)';
+  ctx.fill();
+  ctx.strokeStyle=crA?'rgba(140,180,150,0.7)':'rgba(140,180,150,0.4)';
+  ctx.lineWidth=1.8; ctx.stroke();
+  ctx.fillStyle='rgba(140,180,150,0.55)'; ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('CRICOID CARTILAGE', cx, 202);
+  // Trachea rings
+  ctx.strokeStyle='rgba(100,130,120,0.18)'; ctx.lineWidth=1;
+  for(let i=1;i<=3;i++){ ctx.beginPath(); ctx.ellipse(cx,222+i*14,46-i*2,8,0,0,Math.PI*2); ctx.stroke(); }
+
+  // ── ARYTENOIDS ──
+  const aryY=138;
+  [[cx-22-foldGap,false],[cx+22+foldGap,true]].forEach(([ax,mirror])=>{
+    const sx=mirror?-1:1;
+    ctx.save(); ctx.translate(ax,aryY); ctx.scale(sx,1);
+    ctx.beginPath();
+    ctx.moveTo(0,-18); ctx.bezierCurveTo(-6,-14,-14,0,-12,14);
+    ctx.bezierCurveTo(-8,22,0,24,6,20);
+    ctx.bezierCurveTo(14,16,14,4,10,-6);
+    ctx.bezierCurveTo(8,-14,4,-18,0,-18); ctx.closePath();
+    const aryA=key==='IA'||key==='LCA'||key==='PCA';
+    ctx.fillStyle=aryA?'rgba(160,140,200,0.35)':'rgba(160,140,200,0.15)';
+    ctx.fill();
+    ctx.strokeStyle=aryA?'rgba(160,140,200,0.8)':'rgba(160,140,200,0.4)';
+    ctx.lineWidth=1.5; ctx.stroke();
+    ctx.restore();
+  });
+  ctx.fillStyle='rgba(160,140,200,0.55)'; ctx.font='bold 8px Exo 2'; ctx.textAlign='left';
+  ctx.fillText('ARYTENOIDS', cx+30+foldGap, 120);
+  ctx.strokeStyle='rgba(160,140,200,0.2)'; ctx.lineWidth=0.8;
+  ctx.beginPath(); ctx.moveTo(cx+28+foldGap,122); ctx.lineTo(cx+22+foldGap,132); ctx.stroke();
+
+  // ── VOCAL FOLDS ──
+  const fY=100, fH=26, lM=cx-foldGap, rM=cx+foldGap, lA=cx-72, rA=cx+72;
+  [[lA,lM,true],[rM,rA,false]].forEach(([x1,x2,isLeft])=>{
+    const fr=isLeft?-1:1;
+    ctx.beginPath();
+    ctx.moveTo(x1,fY);
+    ctx.bezierCurveTo(x1+(x2-x1)*0.3,fY-2,x1+(x2-x1)*0.7,fY-2,x2,fY);
+    ctx.bezierCurveTo(x2+fr*5,fY+4,x2+fr*5,fY+fH-4,x2,fY+fH);
+    ctx.bezierCurveTo(x1+(x2-x1)*0.7,fY+fH+5,x1+(x2-x1)*0.3,fY+fH+5,x1,fY+fH);
+    ctx.lineTo(x1,fY); ctx.closePath();
+    const grad=ctx.createLinearGradient(x1,fY,x2,fY+fH);
+    if(key==='TA'){ grad.addColorStop(0,'rgba(45,212,191,0.4)'); grad.addColorStop(1,'rgba(45,212,191,0.15)'); }
+    else { grad.addColorStop(0,'rgba(220,150,130,0.5)'); grad.addColorStop(1,'rgba(180,110,100,0.3)'); }
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.strokeStyle=key==='TA'?'rgba(45,212,191,0.8)':'rgba(210,140,120,0.6)'; ctx.lineWidth=1.8; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2,fY+4); ctx.bezierCurveTo(x2+fr*4,fY+10,x2+fr*4,fY+fH-10,x2,fY+fH-4);
+    ctx.strokeStyle=key==='TA'?'rgba(45,212,191,0.4)':'rgba(255,220,200,0.3)'; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  // VF labels
+  ctx.fillStyle='rgba(210,140,120,0.6)'; ctx.font='bold 8px Exo 2';
+  ctx.textAlign='right'; ctx.fillText('VOCAL FOLD', lA-5, fY+fH/2+3);
+  ctx.textAlign='left';  ctx.fillText('VOCAL FOLD', rA+5, fY+fH/2+3);
+  ctx.fillStyle='rgba(255,255,255,0.18)'; ctx.font='bold 8px IBM Plex Mono'; ctx.textAlign='center';
+  ctx.fillText(foldGap>5?'GLOTTIS (open)':'GLOTTIS', cx, fY+fH/2+3);
+
+  // Glottal midline
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1; ctx.setLineDash([2,4]);
+  ctx.beginPath(); ctx.moveTo(cx,fY-8); ctx.lineTo(cx,fY+fH+8); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Supra/subglottis labels
+  ctx.fillStyle='rgba(255,255,255,0.14)'; ctx.font='8px IBM Plex Mono'; ctx.textAlign='center';
+  ctx.fillText('SUPRAGLOTTIS', cx, fY-12);
+  ctx.fillText('SUBGLOTTIS', cx, fY+fH+20);
+
+  // ── MUSCLE OVERLAYS ──
+  if(key&&mc){
+    ctx.save(); ctx.shadowColor=mc; ctx.shadowBlur=8;
+    if(key==='IA'){
+      ctx.strokeStyle=mc; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(cx-22-foldGap+6,aryY); ctx.lineTo(cx+22+foldGap-6,aryY); ctx.stroke();
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx-22-foldGap+4,aryY-10); ctx.lineTo(cx+22+foldGap-4,aryY+10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-22-foldGap+4,aryY+10); ctx.lineTo(cx+22+foldGap-4,aryY-10); ctx.stroke();
+      drawArrowD(ctx,lM+14,fY+fH/2,lM+3,fY+fH/2,mc,2);
+      drawArrowD(ctx,rM-14,fY+fH/2,rM-3,fY+fH/2,mc,2);
+    }
+    if(key==='LCA'){
+      ctx.strokeStyle=mc; ctx.lineWidth=2.5; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(cx-50,198); ctx.lineTo(cx-22-foldGap+4,aryY+12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+50,198); ctx.lineTo(cx+22+foldGap-4,aryY+12); ctx.stroke();
+      ctx.setLineDash([]);
+      drawArrowD(ctx,lM+14,fY+fH/2,lM+3,fY+fH/2,mc,2);
+      drawArrowD(ctx,rM-14,fY+fH/2,rM-3,fY+fH/2,mc,2);
+    }
+    if(key==='PCA'){
+      ctx.strokeStyle=mc; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(cx-10,210); ctx.lineTo(cx-22-foldGap+4,aryY+12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+10,210); ctx.lineTo(cx+22+foldGap-4,aryY+12); ctx.stroke();
+      drawArrowD(ctx,lM-4,fY+fH/2,lM-18,fY+fH/2,mc,2);
+      drawArrowD(ctx,rM+4,fY+fH/2,rM+18,fY+fH/2,mc,2);
+    }
+    if(key==='CT'){
+      ctx.strokeStyle=mc; ctx.lineWidth=2.5; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(cx-28,172); ctx.lineTo(cx-60,118); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+28,172); ctx.lineTo(cx+60,118); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(cx,215,72,-1.0,-0.35);
+      ctx.strokeStyle=mc+'55'; ctx.lineWidth=8; ctx.stroke();
+      drawArrowD(ctx,lA-2,fY+fH/2,lA-16,fY+fH/2,mc,2);
+      drawArrowD(ctx,rA+2,fY+fH/2,rA+16,fY+fH/2,mc,2);
+    }
+    if(key==='TA'){
+      drawArrowD(ctx,lA+8,fY+fH/2,lA+22,fY+fH/2,mc,2);
+      drawArrowD(ctx,rA-8,fY+fH/2,rA-22,fY+fH/2,mc,2);
+    }
+    ctx.restore();
+  }
+
+  // Bottom orientation
+  ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.font='8px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText('← ANTERIOR                    POSTERIOR →', cx, H-6);
+}
+
+/* ════════════════════════
+   PART 2 — MEAD
+════════════════════════ */
+const meadSteps = [
+  { lbl:'Step 1 of 8', title:'Adduction — Closing the Glottis',
+    desc:'LCA and IA muscles contract, applying medial compression. The vocal folds are brought firmly to the midline. The glottis is completely closed.',
+    hl:'🔑 Glottis = CLOSED. Muscles actively compressing.',
+    col:'#4a9eff', gapSup:0, gapInf:0, pPct:8, vPct:0, pLbl:'Resting', vLbl:'None', showCompArrows:true },
+  { lbl:'Step 2 of 8', title:'Medial Compression Maintained',
+    desc:'The vocal folds are held firmly together by medial compression. Subglottic pressure has not yet risen significantly — the folds remain sealed at the glottis.',
+    hl:'🔑 Folds sealed. Medial compression holding.',
+    col:'#4a9eff', gapSup:0, gapInf:0, pPct:22, vPct:0, pLbl:'Low', vLbl:'None' },
+  { lbl:'Step 3 of 8', title:'Subglottic Pressure Builds',
+    desc:'Respiratory muscles continue to push air upward. Pressure accumulates in the subglottic space below the sealed folds. The folds are being pushed from beneath but remain closed.',
+    hl:'🔑 Pressure building below — folds still sealed.',
+    col:'#ff9900', gapSup:0, gapInf:0, pPct:68, vPct:0, pLbl:'Building ↑', vLbl:'None' },
+  { lbl:'Step 4 of 8', title:'PTP — Inferior Margin Separates First',
+    desc:'Subglottic pressure reaches Phonation Threshold Pressure (PTP). The inferior (lower) edges of the folds are pushed apart FIRST. The superior edges remain in contact. This is the beginning of the mucosal wave.',
+    hl:'🔑 Bottom opens first — top still sealed. Wedge shape.',
+    col:'#ff6060', gapSup:0, gapInf:18, pPct:100, vPct:4, pLbl:'PTP ⚠️', vLbl:'Starting' },
+  { lbl:'Step 5 of 8', title:'Full Opening — Airflow Begins',
+    desc:'Both inferior and superior edges are now open. The inferior gap remains wider than the superior gap. Air rushes through the glottis — the airflow column is widest at the bottom.',
+    hl:'🔑 Both edges open — inferior wider. Airflow begins.',
+    col:'#2dd4bf', gapSup:20, gapInf:30, pPct:55, vPct:92, pLbl:'Decreasing ↓', vLbl:'High ↑↑' },
+  { lbl:'Step 6 of 8', title:'Bernoulli Effect — Folds Drawn Inward',
+    desc:'High-velocity airflow through the narrow glottis creates a low-pressure zone between the folds. This Bernoulli force actively pulls the folds back toward the midline.',
+    hl:'🔑 Fast air = low pressure = folds drawn together.',
+    col:'#2dd4bf', gapSup:16, gapInf:22, pPct:40, vPct:85, pLbl:'Low ↓', vLbl:'High ↑↑', showBernoulli:true },
+  { lbl:'Step 7 of 8', title:'Elastic Recoil — Inferior Closes First',
+    desc:'Elastic tissue properties pull the folds back. The inferior edges close first — mirroring how they opened. The superior edges are still slightly apart as the inferior edges meet.',
+    hl:'🔑 Bottom closes first — top still slightly open.',
+    col:'#a78bfa', gapSup:6, gapInf:10, pPct:22, vPct:35, pLbl:'Low ↓', vLbl:'Moderate' },
+  { lbl:'Step 8 of 8', title:'Mucosal Wave — Cycle Repeats',
+    desc:'As the folds complete closure, a traveling mucosal wave ripples from the inferior to the superior margin. This wave is visible during laryngoscopy and is a key indicator of healthy vocal fold vibration.',
+    hl:'🔑 Mucosal wave: inferior → superior. Cycle resets.',
+    col:'#2dd4bf', gapSup:0, gapInf:0, pPct:40, vPct:60, pLbl:'Cycling', vLbl:'Cycling', mucosal:true }
+];
+
+let meadStep=0, meadInterval=null;
+
+function meadSVG(s) {
+  const cx=100, fY=108, fT=38, fM=fY+fT/2, lA=28, rA=172;
+  const gSup=s.gapSup||0, gInf=s.gapInf||0;
+  const lMsup=cx-gSup/2, lMinf=cx-gInf/2; // left medial edge at superior/inferior
+  const rMsup=cx+gSup/2, rMinf=cx+gInf/2;
+  const r=10; // corner radius
+  const gId='gs'+meadStep;
+  function hexRgb(h){const v=parseInt(h.slice(1),16);return`${(v>>16)&255},${(v>>8)&255},${v&255}`;}
+  const rgb=hexRgb(s.col);
+  const pCol=s.pPct>80?'#ff6040':s.pPct>40?'#ff9900':'#4a9eff';
+
+  // ── PRESSURE ARROWS ──
+  let pArr='';
+  const nA=s.pPct>80?4:s.pPct>40?3:s.pPct>10?2:0;
+  const axs=[60,80,100,120];
+  for(let i=0;i<nA;i++){
+    const ax=axs[i], ln=18+(s.pPct/100)*22;
+    pArr+=`<line x1="${ax}" y1="200" x2="${ax}" y2="${200-ln}" stroke="${pCol}" stroke-width="1.8" marker-end="url(#au${gId})" opacity="0.9"/>`;
+  }
+
+  // ── AIRFLOW ANIMATED DOTS ──
+  let af='';
+  if(s.vPct>5 && gInf>3){
+    const nDots = s.vPct>70?6:s.vPct>30?4:2;
+    const dur   = s.vPct>70?'0.55s':s.vPct>30?'0.75s':'1.0s';
+    const startY = fY+fT+14, endY = fY-22;
+    const xOff  = [-6,-2,2,6,-4,4];
+    for(let i=0;i<nDots;i++){
+      const delay=(i*(parseFloat(dur)/nDots)).toFixed(2)+'s';
+      const dx=cx+xOff[i%xOff.length];
+      af += `<circle cx="${dx}" cy="${startY}" r="2.6" fill="rgba(45,212,191,0.85)">
+        <animate attributeName="cy" from="${startY}" to="${endY}" dur="${dur}" repeatCount="indefinite" begin="${delay}"/>
+        <animate attributeName="opacity" values="0;0.9;0.9;0" keyTimes="0;0.12;0.82;1" dur="${dur}" repeatCount="indefinite" begin="${delay}"/>
+      <\/circle>`;
+    }
+  }
+
+  // ── MEDIAL COMPRESSION CURVED ARROWS (step 1 only) ──
+  let mArr='';
+  if(s.showCompArrows){
+    // Left: curved arc coming from left wall, hooking right toward fold
+    mArr += `<path d="M ${lA-18},${fM+14} Q ${lA-20},${fM-10} ${lA+2},${fM-2}" stroke="#FFC904" stroke-width="2.5" fill="none" marker-end="url(#ar${gId})"/>`;
+    // Right: mirror
+    mArr += `<path d="M ${rA+18},${fM+14} Q ${rA+20},${fM-10} ${rA-2},${fM-2}" stroke="#FFC904" stroke-width="2.5" fill="none" marker-end="url(#al${gId})"/>`;
+  }
+
+  // ── BERNOULLI LABEL ──
+  const bLbl=s.showBernoulli?`<text x="${cx}" y="72" text-anchor="middle" fill="#2dd4bf" font-size="8" font-family="IBM Plex Sans" opacity="0.9">↑ velocity → ↓ pressure → folds drawn in<\/text>`:'';
+
+  // ── MUCOSAL WAVE ──
+  const lmB=`M ${lMsup},${fY+r} L ${lMsup},${fY+fT-r}`;
+  const lmW=`M ${lMsup-4},${fY+r} Q ${lMsup+5},${fY+fT*0.4} ${lMsup-4},${fY+fT*0.7} Q ${lMsup+3},${fY+fT-r} ${lMsup},${fY+fT-r}`;
+  const rmB=`M ${rMsup},${fY+r} L ${rMsup},${fY+fT-r}`;
+  const rmW=`M ${rMsup+4},${fY+r} Q ${rMsup-5},${fY+fT*0.4} ${rMsup+4},${fY+fT*0.7} Q ${rMsup-3},${fY+fT-r} ${rMsup},${fY+fT-r}`;
+  const mucW=s.mucosal?
+    `<path fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round"><animate attributeName="d" dur="0.4s" repeatCount="indefinite" values="${lmB};${lmW};${lmB}"/><\/path>
+     <path fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round"><animate attributeName="d" dur="0.4s" repeatCount="indefinite" values="${rmB};${rmW};${rmB}"/><\/path>
+     <text x="${cx}" y="185" text-anchor="middle" fill="#2dd4bf" font-size="8" font-family="IBM Plex Sans">↑ mucosal wave: inferior → superior ↑<\/text>`:'';
+
+  // ── WEDGE FOLD PATHS ──
+  // Left fold: superior medial=lMsup (top), inferior medial=lMinf (bottom, further from cx)
+  const rSup=Math.min(r, gSup>2?r:4), rInf=Math.min(r, gInf>2?r:4);
+  const lFold=gSup===0&&gInf===0
+    // Fully closed — flat medial edge
+    ? `M ${lA},${fY} L ${cx-2},${fY} L ${cx-2},${fY+fT} L ${lA},${fY+fT} Z`
+    // Wedge — curved medial edge from superior to inferior
+    : `M ${lA},${fY} L ${lMsup-rSup},${fY} Q ${lMsup},${fY} ${lMsup},${fY+rSup} C ${lMsup+1},${fY+fT*0.38} ${lMinf+1},${fY+fT*0.62} ${lMinf},${fY+fT-rInf} Q ${lMinf},${fY+fT} ${lMinf-rInf},${fY+fT} L ${lA},${fY+fT} Z`;
+  const rFold=gSup===0&&gInf===0
+    ? `M ${rA},${fY} L ${cx+2},${fY} L ${cx+2},${fY+fT} L ${rA},${fY+fT} Z`
+    : `M ${rA},${fY} L ${rMsup+rSup},${fY} Q ${rMsup},${fY} ${rMsup},${fY+rSup} C ${rMsup-1},${fY+fT*0.38} ${rMinf-1},${fY+fT*0.62} ${rMinf},${fY+fT-rInf} Q ${rMinf},${fY+fT} ${rMinf+rInf},${fY+fT} L ${rA},${fY+fT} Z`;
+
+  // Glottal opening label
+  const glottisLbl = gInf>2
+    ? `<text x="${cx}" y="${fY+fT+26}" text-anchor="middle" fill="rgba(45,212,191,0.55)" font-size="7.5" font-family="IBM Plex Mono">${gSup<3?'inf. margin open':'both margins open'}<\/text>`
+    : '';
+
+  // ── SIDE GAUGES ──
+  const pF=(s.pPct/100)*54, vF=(s.vPct/100)*54;
+  const gauges=`
+    <text x="202" y="92" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="7" font-family="IBM Plex Sans">Press.<\/text>
+    <rect x="196" y="96" width="12" height="56" rx="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <rect x="196" y="${152-pF}" width="12" height="${pF}" rx="2" fill="${pCol}" opacity="0.9"/>
+    <text x="202" y="165" text-anchor="middle" fill="${pCol}" font-size="6.5" font-family="IBM Plex Mono">${s.pPct}%<\/text>
+    <text x="220" y="92" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="7" font-family="IBM Plex Sans">Flow<\/text>
+    <rect x="214" y="96" width="12" height="56" rx="3" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <rect x="214" y="${152-vF}" width="12" height="${vF}" rx="2" fill="#2dd4bf" opacity="0.9"/>
+    <text x="220" y="165" text-anchor="middle" fill="#2dd4bf" font-size="6.5" font-family="IBM Plex Mono">${s.vPct}%<\/text>`;
+
+  return `<svg viewBox="0 0 235 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="${gId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(${rgb},1)"/>
+      <stop offset="100%" stop-color="rgba(${rgb},0.7)"/>
+    <\/linearGradient>
+    <marker id="au${gId}" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto"><path d="M0,6 L3,0 L6,6" fill="none" stroke="${pCol}" stroke-width="1.2"/><\/marker>
+    <marker id="ar${gId}" markerWidth="6" markerHeight="6" refX="0" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#FFC904"/><\/marker>
+    <marker id="al${gId}" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><polygon points="6,0 0,3 6,6" fill="#FFC904"/><\/marker>
+  <\/defs>
+  <rect x="6" y="16" width="184" height="208" rx="8" fill="#040b18" stroke="#162135" stroke-width="1.5"/>
+  <rect x="6" y="16" width="21" height="208" fill="#0b1729"/>
+  <rect x="169" y="16" width="21" height="208" fill="#0b1729"/>
+  <text x="${cx}" y="33" text-anchor="middle" fill="rgba(255,255,255,0.16)" font-size="8" font-family="IBM Plex Sans">Supraglottis<\/text>
+  <text x="${cx}" y="217" text-anchor="middle" fill="rgba(255,255,255,0.16)" font-size="8" font-family="IBM Plex Sans">Subglottis<\/text>
+  ${pArr}
+  <path d="${lFold}" fill="url(#${gId})" stroke="rgba(${rgb},0.6)" stroke-width="1"/>
+  <path d="${rFold}" fill="url(#${gId})" stroke="rgba(${rgb},0.6)" stroke-width="1"/>
+  ${af}${mucW}${mArr}${bLbl}${glottisLbl}
+  <line x1="190" y1="80" x2="190" y2="180" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  ${gauges}
+<\/svg>`;
+}
+
+function renderMEAD() {
+  const s=meadSteps[meadStep];
+  document.getElementById('meadSVG').innerHTML=meadSVG(s);
+  document.getElementById('meadLbl').textContent=s.lbl;
+  document.getElementById('meadTitle').textContent=s.title;
+  document.getElementById('meadDesc').textContent=s.desc;
+  const hl=document.getElementById('meadHL');
+  hl.textContent=s.hl; hl.style.cssText=`border-radius:7px;padding:9px 12px;font-size:12px;font-weight:700;background:${s.col}22;border:1px solid ${s.col}66;color:${s.col};`;
+  document.getElementById('pressFill').style.width=s.pPct+'%';
+  document.getElementById('velFill').style.width=s.vPct+'%';
+  document.getElementById('pressVal').textContent=s.pLbl;
+  document.getElementById('velVal').textContent=s.vLbl;
+  document.getElementById('pressVal').style.color=s.pPct>80?'#ff6040':s.pPct>40?'#ff9900':'#8eb4d4';
+  document.getElementById('velVal').style.color=s.vPct>70?'#2dd4bf':'#8eb4d4';
+  document.getElementById('meadCounter').textContent=`${meadStep+1} / ${meadSteps.length}`;
+  document.getElementById('meadPrev').disabled=meadStep===0;
+  document.getElementById('meadNext').disabled=meadStep===meadSteps.length-1;
+  // Dots
+  const dc=document.getElementById('meadDots'); dc.innerHTML='';
+  meadSteps.forEach((_,i)=>{
+    const d=document.createElement('div'); d.className='sdot'+(i===meadStep?' active':'');
+    d.onclick=()=>{meadStep=i;renderMEAD();}; dc.appendChild(d);
+  });
+}
+function meadNav(d){meadStep=Math.max(0,Math.min(meadSteps.length-1,meadStep+d));renderMEAD();}
+function toggleMEADLoop(){
+  const btn=document.getElementById('meadLoop');
+  if(meadInterval){clearInterval(meadInterval);meadInterval=null;btn.textContent='▶ Loop';btn.style.borderColor='#2dd4bf';btn.style.color='#2dd4bf';btn.style.background='transparent';}
+  else{meadInterval=setInterval(()=>{meadStep=(meadStep+1)%meadSteps.length;renderMEAD();},500);btn.textContent='⏹ Stop';btn.style.borderColor='#ff6060';btn.style.color='#ff6060';btn.style.background='rgba(255,96,96,0.08)';}
+}
+
+/* ════════════════════════
+   PART 3 — BERNOULLI
+════════════════════════ */
+function drawBernoulli(speed) {
+  const {ctx,W,H}=gCtx('bernCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+  const cx=W/2, glY=H/2, wideHW=42, narrowHW=Math.max(5,36-speed*3.1);
+
+  function hw(y){const d=Math.abs(y-glY);const t=Math.min(1,d/55);return narrowHW+(wideHW-narrowHW)*t*t;}
+
+  // Fill interior
+  let fill=`M ${cx-wideHW},0 `;
+  for(let i=0;i<=24;i++){const y=(H/24)*i;fill+=`L ${(cx-hw(y)).toFixed(1)},${y.toFixed(1)} `;}
+  fill+=`L ${cx-wideHW},${H} L ${cx+wideHW},${H} `;
+  for(let i=24;i>=0;i--){const y=(H/24)*i;fill+=`L ${(cx+hw(y)).toFixed(1)},${y.toFixed(1)} `;}
+  fill+='Z';
+  ctx.fillStyle='rgba(74,130,255,0.04)'; ctx.fill(new Path2D(fill));
+
+  // Dots
+  const dotYs=[12,32,55,80,105,H/2-12,H/2,H/2+12,H-105,H-80,H-55,H-32,H-12];
+  dotYs.forEach(y=>{
+    const h=hw(y), relV=wideHW/h;
+    const sp=8*relV;
+    const al=Math.max(0.2,0.75-(relV-1)*0.25);
+    const rr=Math.round(74+(relV-1)*20), gg=Math.round(158+(relV-1)*50);
+    const fill2=`rgba(${rr},${gg},255,${al.toFixed(2)})`;
+    let x=cx-h+sp*0.5;
+    while(x<cx+h-2){
+      ctx.beginPath(); ctx.arc(x,y,2.3,0,Math.PI*2);
+      ctx.fillStyle=fill2; ctx.fill();
+      x+=sp;
+    }
+  });
+
+  // Walls
+  let lw=`M ${cx-wideHW},0 `, rw=`M ${cx+wideHW},0 `;
+  for(let i=0;i<=24;i++){const y=(H/24)*i; lw+=`L ${(cx-hw(y)).toFixed(1)},${y.toFixed(1)} `; rw+=`L ${(cx+hw(y)).toFixed(1)},${y.toFixed(1)} `;}
+  ['#0a1526','#0a1526'].forEach((fc,i)=>{
+    const p=new Path2D((i===0?`M 0,0 ${lw.slice(2)} L 0,${H} Z`:`M ${W},0 ${rw.slice(2)} L ${W},${H} Z`));
+    ctx.fillStyle=fc; ctx.fill(p);
+  });
+  ctx.strokeStyle='#1e3050'; ctx.lineWidth=2;
+  ctx.stroke(new Path2D(lw)); ctx.stroke(new Path2D(rw));
+
+  // Inward arrows at high speed
+  if(speed>5){
+    const nhw=hw(glY);
+    ctx.strokeStyle='rgba(255,80,60,0.8)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(cx-nhw-12,glY); ctx.lineTo(cx-nhw+2,glY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+nhw+12,glY); ctx.lineTo(cx+nhw-2,glY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-nhw-4,glY-5); ctx.lineTo(cx-nhw+2,glY); ctx.lineTo(cx-nhw-4,glY+5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+nhw+4,glY-5); ctx.lineTo(cx+nhw-2,glY); ctx.lineTo(cx+nhw+4,glY+5); ctx.stroke();
+    ctx.fillStyle='rgba(255,80,60,0.7)'; ctx.font='8px IBM Plex Mono'; ctx.textAlign='center';
+    ctx.fillText('← Low P →', cx, glY+16);
+  }
+
+  const gCol=speed>6?'rgba(255,96,60,0.9)':speed>3?'rgba(255,200,60,0.8)':'rgba(74,158,255,0.6)';
+  ctx.fillStyle=gCol; ctx.font='8px IBM Plex Mono'; ctx.textAlign='center';
+  ctx.fillText(speed>6?'↓ Low P':speed>3?'↓ P drops':'Normal P', cx, glY+28);
+  ctx.fillStyle='rgba(142,180,212,0.4)'; ctx.font='7px IBM Plex Sans';
+  ctx.fillText('← Dense / Slow / Hi P', cx-5, 12);
+  ctx.fillText('Sparse / Fast / Lo P →', cx+5, H-4);
+  ctx.fillStyle='rgba(255,201,4,0.5)'; ctx.font='7px IBM Plex Sans'; ctx.textAlign='center';
+  ctx.fillText('L. fold', 12, glY+3); ctx.fillText('R. fold', W-12, glY+3);
+}
+
+function updateBernoulli() {
+  const sp=parseFloat(document.getElementById('bernSlider').value);
+  const lbs=['Very Low','Low','Moderate','Moderate','High','High','Very High','Very High','Max','Max','Max'];
+  const pls=['Normal','Normal','Slightly ↓','Slightly ↓','Reduced ↓','Reduced ↓','Low ↓↓','Low ↓↓','Very Low ↓↓↓','Very Low ↓↓↓','Minimal'];
+  const els=['No significant draw','No significant draw','Mild draw','Mild draw','Moderate draw inward','Moderate draw inward','Strong draw — closure','Strong draw — closure','Max Bernoulli effect','Max Bernoulli effect','Max Bernoulli effect'];
+  const si=Math.round(sp);
+  const col=`hsl(${Math.round(200-sp*15)},80%,60%)`;
+  document.getElementById('bernSpeedLabel').textContent=lbs[si]; document.getElementById('bernSpeedLabel').style.color=col;
+  document.getElementById('bernVelOut').textContent=lbs[si]; document.getElementById('bernVelOut').style.color=col;
+  document.getElementById('bernPressOut').textContent=pls[si];
+  document.getElementById('bernEffOut').textContent=els[si];
+  const desc=sp<3?'Slow airflow — minimal pressure drop. Folds are not being drawn inward.':
+             sp<6?'Moderate velocity — pressure begins to drop between the folds. Mild drawing force develops.':
+                  'High velocity — significant low-pressure zone between folds. Bernoulli force actively drawing folds toward midline.';
+  document.getElementById('bernDesc').textContent=desc;
+  document.getElementById('bernDesc').style.color=col;
+  drawBernoulli(sp);
+}
+
+/* ════════════════════════
+   PART 4 — FREQUENCY & INTENSITY
+════════════════════════ */
+let phonPhase=0, phonAnimId=null;
+
+function drawPhonWave() {
+  const {ctx,W,H}=gCtx('phonCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#070e1c'; ctx.fillRect(0,0,W,H);
+  const ct=parseFloat(document.getElementById('ctSlider').value);
+  const ps=parseFloat(document.getElementById('psubSlider').value);
+  const freq=1.5+(ct/10)*6;
+  const amp=(ps/9)*(H/2-14);
+  const hue=Math.round(200-(ct/10)*60);
+  const col=`hsl(${hue},80%,60%)`;
+
+  // Baseline
+  ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke(); ctx.setLineDash([]);
+
+  // Amplitude markers
+  ctx.strokeStyle='rgba(255,96,96,0.15)'; ctx.lineWidth=1; ctx.setLineDash([2,5]);
+  ctx.beginPath(); ctx.moveTo(0,H/2-amp); ctx.lineTo(W,H/2-amp); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H/2+amp); ctx.lineTo(W,H/2+amp); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Wave
+  const grad=ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,`hsla(${hue},80%,60%,0.4)`);
+  grad.addColorStop(0.5,`hsla(${hue},80%,60%,1)`);
+  grad.addColorStop(1,`hsla(${hue},80%,60%,0.4)`);
+  ctx.strokeStyle=grad; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let x=0;x<=W;x++){const y=H/2-amp*Math.sin(2*Math.PI*freq*x/W-phonPhase); x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.stroke();
+
+  // Freq label
+  ctx.fillStyle=`hsla(${hue},80%,60%,0.5)`; ctx.font='9px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillText(`freq×${freq.toFixed(1)}  amp=${Math.round(amp)}`, 8, 12);
+
+  phonPhase+=0.04;
+  phonAnimId=requestAnimationFrame(drawPhonWave);
+}
+
+function updatePhonation() {
+  const ct=parseFloat(document.getElementById('ctSlider').value);
+  const ps=parseFloat(document.getElementById('psubSlider').value);
+  const approxF0=Math.round(80+(ct/10)*320);
+  const hue=Math.round(200-(ct/10)*60);
+  const col=`hsl(${hue},80%,60%)`;
+  const pCol=`hsl(${Math.round(200-(ps/9)*140)},80%,60%)`;
+
+  const ctLbl=['Low','Low','Low','Mid-Low','Mid','Mid','Mid-High','High','High','Very High','Very High'];
+  const psLbl=['Whisper','Quiet','Quiet','Soft','Moderate','Moderate','Loud','Loud','Very Loud','Very Loud'];
+  const pitchLbl=['Very Low','Low','Low','Mid-Low','Mid','Mid','Mid-High','High','High','Very High','Very High'];
+  const si=Math.round(ct)-1, pi=Math.round(ps)-1;
+
+  document.getElementById('ctLabel').textContent=ctLbl[Math.min(9,si)]; document.getElementById('ctLabel').style.color=col;
+  document.getElementById('psubLabel').textContent=psLbl[Math.min(8,pi)]; document.getElementById('psubLabel').style.color=pCol;
+  document.getElementById('f0Out').textContent='~'+approxF0+' Hz'; document.getElementById('f0Out').style.color=col;
+  document.getElementById('pitchOut').textContent=pitchLbl[Math.min(9,si)]; document.getElementById('pitchOut').style.color=col;
+  document.getElementById('ampOut').textContent=Math.round((ps/9)*100)+'%'; document.getElementById('ampOut').style.color=pCol;
+  document.getElementById('loudOut').textContent=psLbl[Math.min(8,pi)]; document.getElementById('loudOut').style.color=pCol;
+
+  const desc=
+    ct>7&&ps>6?'High CT tension + high Psub → high frequency, large amplitude → loud, high-pitched voice.' :
+    ct>7?'High CT tension → stretched folds → high F0 → high-pitched voice. Psub controls how loud.' :
+    ps>6?'High Psub → larger fold displacement → greater amplitude → louder voice. CT controls the pitch.' :
+    ct<3?'Low CT tension → relaxed folds → low F0 → low-pitched voice.' :
+         'Adjust both sliders to explore how CT tension and Psub independently control pitch and loudness.';
+  document.getElementById('phonDesc').textContent=desc;
+}
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    buildMuscleGrid();
+    ['larynxCanvas','bernCanvas','phonCanvas','superiorCanvas'].forEach(initC);
+    drawLarynx(null);
+    drawSuperior(null);
+    renderMEAD();
+    updateBernoulli();
+    updatePhonation();
+    drawPhonWave();
+  }, 80);
+});
+
+window.addEventListener('resize', ()=>{
+  ['larynxCanvas','bernCanvas','phonCanvas','superiorCanvas'].forEach(id=>{const c=document.getElementById(id);if(c)c.width=0;['larynxCanvas','bernCanvas','phonCanvas','superiorCanvas'].forEach(initC);});
+  drawLarynx(selMuscle);
+  updateBernoulli();
+});
+</script>
+</body>
+</html>

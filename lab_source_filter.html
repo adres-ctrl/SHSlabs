@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Source Filter Theory</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Exo 2','Segoe UI',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px;}
+
+  .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
+  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:12px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+  .lab-title{font-size:15px;font-weight:700;color:#dce7f5;}
+  .lab-sub{font-size:11px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
+
+  .section-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .section-note{font-size:13px;color:#8eb4d4;margin-bottom:14px;line-height:1.55;}
+  hr.div{border:none;border-top:1px solid #162135;margin:22px 0;}
+
+  .card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+  @media(max-width:650px){.two-col{grid-template-columns:1fr;}}
+
+  .vis-wrap{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;}
+  .vis-lbl{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:8px 12px 5px;border-bottom:1px solid #0e192e;}
+  canvas{display:block;width:100%;}
+
+  /* Sliders */
+  .slider-block{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .slider-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .slider-name{font-size:13px;font-weight:700;color:#dce7f5;}
+  .slider-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;}
+  .slider-hint{font-size:11px;color:#8eb4d4;}
+  .slider-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
+  .slider-ends{font-size:11px;color:#8eb4d4;white-space:nowrap;}
+  input[type=range]{-webkit-appearance:none;flex:1;height:5px;background:#162135;border-radius:3px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid #000;}
+  .gold-thumb::-webkit-slider-thumb{background:#FFC904;box-shadow:0 0 6px rgba(255,201,4,0.4);}
+  .blue-thumb::-webkit-slider-thumb{background:#4a9eff;box-shadow:0 0 6px rgba(74,158,255,0.4);}
+  .teal-thumb::-webkit-slider-thumb{background:#2dd4bf;box-shadow:0 0 6px rgba(45,212,191,0.4);}
+  .red-thumb::-webkit-slider-thumb{background:#ff6060;box-shadow:0 0 6px rgba(255,96,96,0.4);}
+
+  /* Chips */
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .chip{flex:1;min-width:90px;text-align:center;background:#060c18;border:1px solid #162135;border-radius:8px;padding:9px 10px;}
+  .chip .cl{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8eb4d4;margin-bottom:3px;}
+  .chip .cv{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;transition:color .25s;}
+
+  /* Signal flow */
+  .flow-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:6px;align-items:center;margin-bottom:14px;}
+  .flow-arrow{color:#8eb4d4;font-size:20px;text-align:center;}
+  .flow-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#FFC904;text-align:center;padding:4px 0 6px;}
+
+  /* Desc */
+  .desc-box{font-size:13px;color:#8eb4d4;line-height:1.6;padding:10px 12px;background:#060c18;border:1px solid #162135;border-radius:7px;min-height:40px;}
+
+  /* Footer */
+  .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Source Filter Theory Lab</div>
+    <div class="lab-sub">Complex Waves · Source-Filter · Formant Space</div>
+  </div>
+</div>
+
+<!-- ══ PART 1 — COMPLEX WAVE BUILDER ══ -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">Complex Wave Builder</div>
+<div class="section-note">Adjust the frequency of each wave and observe how they combine. When waves align, they reinforce each other (constructive). When they oppose, they cancel (destructive). The combined result is a complex wave.</div>
+
+<div class="card">
+  <div class="two-col" style="margin-bottom:14px;">
+    <div class="slider-block" style="margin-bottom:0;">
+      <div class="slider-top">
+        <span class="slider-name" style="color:#4ade80;">Wave A Frequency</span>
+        <span class="slider-val" id="waveALabel" style="color:#4ade80;">3×</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-ends">Low</span>
+        <input type="range" id="waveASlider" min="1" max="8" value="3" step="0.5" oninput="updateWaves()" style="-webkit-appearance:none;flex:1;height:5px;background:#162135;border-radius:3px;outline:none;">
+        <span class="slider-ends">High</span>
+      </div>
+    </div>
+    <div class="slider-block" style="margin-bottom:0;">
+      <div class="slider-top">
+        <span class="slider-name" style="color:#4a9eff;">Wave B Frequency</span>
+        <span class="slider-val" id="waveBLabel" style="color:#4a9eff;">5×</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-ends">Low</span>
+        <input type="range" class="blue-thumb" id="waveBSlider" min="1" max="8" value="5" step="0.5" oninput="updateWaves()">
+        <span class="slider-ends">High</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave C toggle -->
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+    <button id="waveCToggle" onclick="toggleWaveC()"
+      style="padding:8px 16px; border-radius:7px; border:1px solid #162135; background:#060c18;
+             color:#8eb4d4; font-family:'Exo 2',sans-serif; font-size:12px; font-weight:700;
+             cursor:pointer; transition:all 0.15s; letter-spacing:0.5px;">
+      + Add Wave C
+    </button>
+    <div id="waveCSliderWrap" style="display:none; flex:1;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+        <span style="font-size:13px; font-weight:700; color:#a78bfa;">Wave C Frequency</span>
+        <span class="slider-val" id="waveCLabel" style="color:#a78bfa;">7×</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-ends">Low</span>
+        <input type="range" id="waveCSlider" min="1" max="8" value="7" step="0.5" oninput="updateWaves()"
+          style="-webkit-appearance:none;flex:1;height:5px;background:#162135;border-radius:3px;outline:none;">
+        <span class="slider-ends">High</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="vis-wrap" style="margin-bottom:8px;">
+    <div class="vis-lbl" id="wavesInputLabel">🟢 Wave A &nbsp;&nbsp; 🔵 Wave B — individual waves</div>
+    <canvas id="wavesInputCanvas" width="600" height="110" style="width:100%;height:110px;"></canvas>
+  </div>
+  <div class="vis-wrap">
+    <div class="vis-lbl">🔴 Complex Wave — sum of all active waves</div>
+    <canvas id="wavesSumCanvas" width="600" height="110" style="width:100%;height:110px;"></canvas>
+  </div>
+  <div class="desc-box" id="waveDesc" style="margin-top:10px;"></div>
+</div>
+
+<!-- ══ PART 2 — SOURCE FILTER THEORY ══ -->
+<hr class="div">
+<div class="section-tag">Part 2</div>
+<div class="section-title">Source → Filter → Output</div>
+<div class="section-note">The vocal folds produce a complex source spectrum (F0 + harmonics). That signal passes through the pharynx (F1 filter) then the oral cavity (F2 filter). Each cavity amplifies harmonics within its bandwidth and dampens the rest. Move the sliders to change the filters and watch each stage update.</div>
+
+<!-- Signal flow panels -->
+<div class="flow-row">
+  <div>
+    <div class="flow-lbl">① Source (F0)</div>
+    <div class="vis-wrap"><canvas id="specSource" width="200" height="90" style="width:100%;height:90px;"></canvas></div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div>
+    <div class="flow-lbl">② Pharynx (F1)</div>
+    <div class="vis-wrap"><canvas id="specPharynx" width="200" height="90" style="width:100%;height:90px;"></canvas></div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div>
+    <div class="flow-lbl">③ Oral Cavity (F2)</div>
+    <div class="vis-wrap"><canvas id="specOral" width="200" height="90" style="width:100%;height:90px;"></canvas></div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div>
+    <div class="flow-lbl">④ Output</div>
+    <div class="vis-wrap"><canvas id="specOutput" width="200" height="90" style="width:100%;height:90px;"></canvas></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="two-col">
+    <div>
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name" style="color:#ff6060;">F0 — Vocal Folds</span>
+          <span class="slider-val" id="f0Label" style="color:#ff6060;">150 Hz</span>
+        </div>
+        <div class="slider-hint">Fundamental frequency — the source pitch</div>
+        <div class="slider-row">
+          <span class="slider-ends">100 Hz</span>
+          <input type="range" class="red-thumb" id="f0Slider" min="100" max="300" value="150" step="10" oninput="updateSFT()">
+          <span class="slider-ends">300 Hz</span>
+        </div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name" style="color:#4a9eff;">Pharynx Size → F1</span>
+          <span class="slider-val" id="pharynxLabel" style="color:#4a9eff;">—</span>
+        </div>
+        <div class="slider-hint">Larger pharynx (tongue forward) = lower F1</div>
+        <div class="slider-row">
+          <span class="slider-ends">Small</span>
+          <input type="range" class="blue-thumb" id="pharynxSlider" min="1" max="10" value="8" step="0.1" oninput="updateSFT()">
+          <span class="slider-ends">Large</span>
+        </div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-top">
+          <span class="slider-name" style="color:#2dd4bf;">Oral Cavity Size → F2</span>
+          <span class="slider-val" id="oralLabel" style="color:#2dd4bf;">—</span>
+        </div>
+        <div class="slider-hint">Smaller oral cavity (tongue high) = higher F2</div>
+        <div class="slider-row">
+          <span class="slider-ends">Small</span>
+          <input type="range" class="teal-thumb" id="oralSlider" min="1" max="10" value="3" step="0.1" oninput="updateSFT()">
+          <span class="slider-ends">Large</span>
+        </div>
+      </div>
+
+      <div class="chip-row">
+        <div class="chip"><div class="cl">F0</div><div class="cv" id="sftF0" style="color:#ff6060;">180 Hz</div></div>
+        <div class="chip"><div class="cl">F1</div><div class="cv" id="sftF1" style="color:#4a9eff;">—</div></div>
+        <div class="chip"><div class="cl">F2</div><div class="cv" id="sftF2" style="color:#2dd4bf;">—</div></div>
+      </div>
+
+      <div class="desc-box" id="sftDesc"></div>
+    </div>
+
+    <div>
+      <div class="vis-wrap">
+        <div class="vis-lbl">🗣️ Vocal Tract — tongue position</div>
+        <canvas id="sftSagittal" width="300" height="195" style="width:100%;height:195px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PART 3 — FORMANT SCATTER ══ -->
+<hr class="div">
+<div class="section-tag">Part 3</div>
+<div class="section-title">Formant Space — F1 × F2</div>
+<div class="section-note">Each vowel occupies a unique location in formant space defined by its F1 and F2 values. This plot uses real measured data. Click any vowel to see the tongue position that produces it. Notice how this map mirrors the vowel quadrilateral.</div>
+
+<div class="card">
+  <div class="two-col">
+    <div>
+      <div class="vis-wrap" style="margin-bottom:10px;">
+        <div class="vis-lbl">📊 F1 × F2 Formant Space — click a vowel</div>
+        <canvas id="scatterCanvas" width="300" height="280" style="width:100%;height:280px;"></canvas>
+      </div>
+      <div style="background:#060c18;border:1px solid #162135;border-radius:8px;padding:12px 14px;">
+        <div style="font-size:12px;color:#8eb4d4;margin-bottom:8px;font-weight:600;">Axes explained:</div>
+        <div style="font-size:12px;color:#8eb4d4;line-height:1.6;">
+          <span style="color:#4a9eff;">F1 (vertical ↓)</span> — higher = lower tongue, larger pharynx<br>
+          <span style="color:#2dd4bf;">F2 (horizontal ←)</span> — higher = front tongue, smaller oral cavity<br>
+          Axes are inverted to match the vowel quadrilateral orientation.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;padding:14px;background:#060c18;border:1px solid #162135;border-radius:8px;">
+        <div id="v3Badge" style="font-family:'IBM Plex Mono',monospace;font-size:44px;font-weight:700;color:#FFC904;min-width:52px;line-height:1;">/i/</div>
+        <div>
+          <div id="v3Word" style="font-size:15px;font-weight:700;color:#dce7f5;">beet</div>
+          <div id="v3Vals" style="font-size:12px;color:#8eb4d4;font-family:'IBM Plex Mono',monospace;margin-top:3px;">F1: 342 Hz &nbsp;|&nbsp; F2: 2322 Hz</div>
+        </div>
+      </div>
+      <div class="vis-wrap">
+        <div class="vis-lbl">🗣️ Tongue position for selected vowel</div>
+        <canvas id="v3Sagittal" width="300" height="185" style="width:100%;height:185px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">© 2025 Adam Reres</div>
+
+<script>
+/* ════════════════════════
+   CANVAS UTILITIES
+════════════════════════ */
+function initC(id) {
+  const c=document.getElementById(id); if(!c) return null;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.parentElement?c.parentElement.offsetWidth:300;
+  const H=parseInt(c.style.height)||parseInt(c.getAttribute('height'))||120;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); c.style.height=H+'px';
+  return c;
+}
+function gCtx(id){
+  const c=document.getElementById(id); if(!c) return{ctx:null,W:0,H:0};
+  const dpr=window.devicePixelRatio||1;
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return{ctx,W:c.width/dpr,H:c.height/dpr};
+}
+function sr(s){const x=Math.sin(s+1)*43758.5453;return x-Math.floor(x);}
+
+/* ════════════════════════
+   PART 1 — COMPLEX WAVES
+════════════════════════ */
+let wavePhase=0, waveAnim=null;
+
+let waveCActive = false;
+
+function toggleWaveC() {
+  waveCActive = !waveCActive;
+  const btn = document.getElementById('waveCToggle');
+  const wrap = document.getElementById('waveCSliderWrap');
+  const lbl  = document.getElementById('wavesInputLabel');
+  wrap.style.display = waveCActive ? 'flex' : 'none';
+  btn.textContent = waveCActive ? '− Remove Wave C' : '+ Add Wave C';
+  btn.style.borderColor = waveCActive ? '#a78bfa' : '#162135';
+  btn.style.color = waveCActive ? '#a78bfa' : '#8eb4d4';
+  btn.style.background = waveCActive ? 'rgba(167,139,250,0.08)' : '#060c18';
+  lbl.textContent = waveCActive
+    ? '🟢 Wave A  🔵 Wave B  🟣 Wave C — individual waves'
+    : '🟢 Wave A  🔵 Wave B — individual waves';
+  updateWaves();
+}
+
+function drawWaveInputs(fA, fB, fC) {
+  const{ctx,W,H}=gCtx('wavesInputCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+  const mid=H/2;
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+
+  const drawWave=(freq,col)=>{
+    const amp=0.7*(H/2-10);
+    ctx.strokeStyle=col; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let x=0;x<=W;x++){
+      const y=mid-amp*Math.sin(2*Math.PI*freq*x/W-wavePhase);
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  };
+  drawWave(fA,'rgba(74,222,128,0.9)');   // green
+  drawWave(fB,'rgba(74,158,255,0.9)');   // blue
+  if(waveCActive && fC) drawWave(fC,'rgba(167,139,250,0.9)'); // purple
+
+  ctx.font='10px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillStyle='rgba(74,222,128,0.5)'; ctx.fillText(`A: ${fA}×`, 8, 14);
+  ctx.fillStyle='rgba(74,158,255,0.5)'; ctx.fillText(`B: ${fB}×`, 52, 14);
+  if(waveCActive && fC){ ctx.fillStyle='rgba(167,139,250,0.5)'; ctx.fillText(`C: ${fC}×`, 96, 14); }
+}
+
+function drawWaveSum(fA, fB, fC) {
+  const{ctx,W,H}=gCtx('wavesSumCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+  const mid=H/2;
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+
+  const nWaves = waveCActive && fC ? 3 : 2;
+  const amp = (0.42/nWaves*2)*(H/2-10);
+  const grad=ctx.createLinearGradient(0,0,W,0);
+  grad.addColorStop(0,'rgba(255,96,96,0.5)');
+  grad.addColorStop(0.5,'rgba(255,96,96,1)');
+  grad.addColorStop(1,'rgba(255,96,96,0.5)');
+  ctx.strokeStyle=grad; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let x=0;x<=W;x++){
+    let sum=Math.sin(2*Math.PI*fA*x/W-wavePhase)+Math.sin(2*Math.PI*fB*x/W-wavePhase);
+    if(waveCActive && fC) sum+=Math.sin(2*Math.PI*fC*x/W-wavePhase);
+    const y=mid-amp*sum;
+    x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  const label = waveCActive && fC
+    ? `Complex wave: A(${fA}×) + B(${fB}×) + C(${fC}×)`
+    : `Complex wave: A(${fA}×) + B(${fB}×)`;
+  ctx.fillStyle='rgba(255,96,96,0.5)'; ctx.font='10px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillText(label, 8, 14);
+}
+
+function updateWaves() {
+  const fA=parseFloat(document.getElementById('waveASlider').value);
+  const fB=parseFloat(document.getElementById('waveBSlider').value);
+  const fC=waveCActive?parseFloat(document.getElementById('waveCSlider').value):null;
+  document.getElementById('waveALabel').textContent=fA+'×';
+  document.getElementById('waveBLabel').textContent=fB+'×';
+  if(waveCActive) document.getElementById('waveCLabel').textContent=fC+'×';
+  const diff=Math.abs(fA-fB);
+  const desc=diff<0.5?'Waves A and B have nearly identical frequencies — strong constructive interference creates much greater amplitude in the complex wave.':
+             diff<2 ?'Waves are close in frequency — partial reinforcement and cancellation create a complex beating pattern.':
+             diff<5 ?'Different frequencies — forces add and oppose across the cycle creating a complex waveform with multiple peaks.':
+                     'Waves are far apart — rapid interaction produces a dense complex waveform. Notice how the red wave carries characteristics of all component waves.';
+  document.getElementById('waveDesc').textContent=desc;
+}
+
+function waveLoop() {
+  const fA=parseFloat(document.getElementById('waveASlider').value);
+  const fB=parseFloat(document.getElementById('waveBSlider').value);
+  const fC=waveCActive?parseFloat(document.getElementById('waveCSlider').value):null;
+  drawWaveInputs(fA,fB,fC);
+  drawWaveSum(fA,fB,fC);
+  wavePhase+=0.035;
+  waveAnim=requestAnimationFrame(waveLoop);
+}
+
+/* ════════════════════════
+   PART 2 — SFT
+════════════════════════ */
+function drawSpectrum(canvasId, f0, f1Amp, f2Amp, title, col1, col2, showLabels, f1hz, f2hz) {
+  const{ctx,W,H}=gCtx(canvasId);
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+
+  const nH=12, padL=4, padR=4, padT=8, padB=16;
+  const chartW=W-padL-padR, chartH=H-padT-padB;
+  const barW=(chartW/nH)*0.55, barGap=chartW/nH;
+
+  ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+
+  for(let i=1;i<=nH;i++){
+    const a1=f1Amp?f1Amp[i-1]:1;
+    const a2=f2Amp?f2Amp[i-1]:1;
+    const amp=Math.min(1,a1*a2);
+    const bH=amp*(chartH-2);
+    const x=padL+(i-0.5)*barGap-barW/2;
+    const y=H-padB-bH;
+    const bright1=(a1||0)>0.5, bright2=(a2||0)>0.5;
+    const barCol=bright2?col2:bright1?col1:'rgba(80,110,160,0.5)';
+    ctx.fillStyle=barCol; ctx.fillRect(x,y,barW,bH);
+  }
+
+  // Cavity watermark labels on output panel
+  if(showLabels && f1hz && f2hz && f0){
+    // Find which harmonic is closest to F1 and F2
+    const h1=Math.round(f1hz/f0), h2=Math.round(f2hz/f0);
+    const x1=padL+(Math.min(nH,Math.max(1,h1))-0.5)*barGap;
+    const x2=padL+(Math.min(nH,Math.max(1,h2))-0.5)*barGap;
+    ctx.font='bold 7px Exo 2'; ctx.textAlign='center';
+    if(h1>=1&&h1<=nH){ ctx.fillStyle='rgba(74,158,255,0.5)'; ctx.fillText('Pharynx', x1, padT+8); }
+    if(h2>=1&&h2<=nH){ ctx.fillStyle='rgba(45,212,191,0.5)'; ctx.fillText('Oral', x2, padT+8); }
+  }
+
+  ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px Exo 2'; ctx.textAlign='center';
+  ctx.fillText(title, W/2, H-3);
+}
+
+function gaussFilter(f, center, bw) {
+  return Math.exp(-0.5*Math.pow((f-center)/bw,2));
+}
+
+function updateSFT() {
+  const f0  = parseInt(document.getElementById('f0Slider').value);
+  const ph  = parseFloat(document.getElementById('pharynxSlider').value);
+  const or  = parseFloat(document.getElementById('oralSlider').value);
+
+  // Map sliders to formant frequencies
+  const f1hz = Math.round(800-(ph-1)/9*500);   // ph 1→10: F1 800→300 Hz
+  const f2hz = Math.round(2400-(or-1)/9*1600);  // or 1→10: F2 2400→800 Hz
+  const bw1=180, bw2=200;
+
+  // Build amplitude arrays for each harmonic
+  const nH=12;
+  const f1amps=[], f2amps=[];
+  for(let i=1;i<=nH;i++){
+    const freq=f0*i;
+    f1amps.push(0.15+gaussFilter(freq,f1hz,bw1)*0.85);
+    f2amps.push(0.15+gaussFilter(freq,f2hz,bw2)*0.85);
+  }
+
+  drawSpectrum('specSource',  f0, null,   null,   `F0=${f0}Hz`,  '#ff6060','#ff6060', false);
+  drawSpectrum('specPharynx', f0, f1amps, null,   `F1≈${f1hz}Hz`,'#4a9eff','#4a9eff', false);
+  drawSpectrum('specOral',    f0, f1amps, f2amps, `F2≈${f2hz}Hz`,'#4a9eff','#2dd4bf', false);
+  drawSpectrum('specOutput',  f0, f1amps, f2amps, 'Output',       '#4a9eff','#2dd4bf', true, f1hz, f2hz);
+
+  document.getElementById('f0Label').textContent=f0+' Hz';
+  document.getElementById('pharynxLabel').textContent='F1 ≈ '+f1hz+' Hz';
+  document.getElementById('oralLabel').textContent='F2 ≈ '+f2hz+' Hz';
+  document.getElementById('sftF0').textContent=f0+' Hz';
+  document.getElementById('sftF1').textContent=f1hz+' Hz';
+  document.getElementById('sftF2').textContent=f2hz+' Hz';
+
+  // Tongue position from sliders
+  const tongueBack   = 1 - (ph-1)/9;   // ph high = tongue forward = back low
+  const tongueHeight = (or-1)/9;        // or high = tongue low = height high
+  drawSagittalTongue('sftSagittal', tongueBack, tongueHeight, f1hz, f2hz);
+
+  // Description
+  const phDir=ph>6?'forward (front vowel region)':ph<4?'back (back vowel region)':'central';
+  const orDir=or<4?'high (high vowel region)':or>7?'low (low vowel region)':'mid';
+  document.getElementById('sftDesc').textContent=
+    `Tongue is ${phDir}, ${orDir}. Pharynx cavity size sets F1 at ~${f1hz} Hz; oral cavity size sets F2 at ~${f2hz} Hz. Harmonics of F0 (${f0} Hz) that land near these centers get amplified — others are damped.`;
+}
+
+/* ════════════════════════
+   SAGITTAL VIEW (shared)
+════════════════════════ */
+function drawSagittalTongue(canvasId, back, height, f1hz, f2hz) {
+  const{ctx,W,H}=gCtx(canvasId);
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060d1c'; ctx.fillRect(0,0,W,H);
+  const sx=W/220, sy=H/180;
+  function p(x,y){return[x*sx,y*sy];}
+
+  // Flip: mouth LEFT, pharynx RIGHT
+  ctx.save(); ctx.transform(-1,0,0,1,W,0);
+
+  // Hard palate
+  ctx.beginPath(); ctx.moveTo(...p(195,80));
+  ctx.bezierCurveTo(...p(165,34),...p(100,28),...p(60,34));
+  ctx.bezierCurveTo(...p(38,40),...p(26,54),...p(24,68));
+  ctx.strokeStyle='rgba(180,200,255,0.55)'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Pharynx wall
+  ctx.beginPath(); ctx.moveTo(...p(24,68)); ctx.lineTo(...p(24,160));
+  ctx.strokeStyle='rgba(180,200,255,0.45)'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Floor
+  ctx.beginPath(); ctx.moveTo(...p(24,160)); ctx.lineTo(...p(188,160));
+  ctx.strokeStyle='rgba(180,200,255,0.3)'; ctx.lineWidth=2; ctx.stroke();
+
+  // Lips
+  ctx.fillStyle='rgba(210,130,120,0.75)';
+  ctx.fillRect(...p(190,74),14*sx,9*sy); ctx.fillRect(...p(190,89),14*sx,9*sy);
+
+  // Tongue
+  const tx=180-back*130, ty=50+height*88;
+  const tw=58, th=24;
+  ctx.beginPath();
+  ctx.moveTo(...p(tx-tw*0.9,ty+th*0.4));
+  ctx.quadraticCurveTo(...p(tx-tw*0.55,ty-th),...p(tx,ty-th));
+  ctx.quadraticCurveTo(...p(tx+tw*0.55,ty-th),...p(tx+tw*0.85,ty));
+  ctx.quadraticCurveTo(...p(tx+tw*0.9,ty+th*0.8),...p(tx+tw*0.2,ty+th*1.1));
+  ctx.quadraticCurveTo(...p(tx-tw*0.5,ty+th*1.1),...p(tx-tw*0.9,ty+th*0.4));
+  ctx.fillStyle='rgba(200,110,95,0.85)'; ctx.fill();
+  ctx.strokeStyle='rgba(230,150,130,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Constriction ring
+  ctx.beginPath(); ctx.arc(...p(tx,ty-th+5),5.5*Math.min(sx,sy),0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,201,4,0.65)'; ctx.lineWidth=1.8; ctx.stroke();
+
+  ctx.restore();
+
+  // Labels (after flip: pharynx=RIGHT, oral=LEFT)
+  const f1x=W-38*sx, f2x=W-150*sx;
+  ctx.textAlign='center';
+  ctx.font=`bold ${Math.round(9.5*sx)}px IBM Plex Sans`;
+  ctx.fillStyle='rgba(74,158,255,0.7)';
+  ctx.fillText(`F1`, f1x, 108*sy);
+  if(f1hz){ ctx.font=`${Math.round(7.5*sx)}px IBM Plex Mono`; ctx.fillStyle='rgba(74,158,255,0.5)'; ctx.fillText(`${f1hz}Hz`, f1x, 118*sy); }
+  ctx.font=`bold ${Math.round(9.5*sx)}px IBM Plex Sans`;
+  ctx.fillStyle='rgba(45,212,191,0.7)';
+  ctx.fillText(`F2`, f2x, 20*sy);
+  if(f2hz){ ctx.font=`${Math.round(7.5*sx)}px IBM Plex Mono`; ctx.fillStyle='rgba(45,212,191,0.5)'; ctx.fillText(`${f2hz}Hz`, f2x, 31*sy); }
+  ctx.font=`${Math.round(7*sx)}px IBM Plex Mono`;
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.textAlign='left'; ctx.fillText('← FRONT', 6*sx, 170*sy);
+  ctx.textAlign='right'; ctx.fillText('BACK →', W-6*sx, 170*sy);
+}
+
+/* ════════════════════════
+   PART 3 — FORMANT SCATTER
+════════════════════════ */
+const vowelData = [
+  {ipa:'/i/', word:'beet',   f1:342,  f2:2322, back:0.05, height:0.05},
+  {ipa:'/ɪ/', word:'bit',    f1:427,  f2:2034, back:0.18, height:0.18},
+  {ipa:'/ɛ/', word:'bet',    f1:580,  f2:1799, back:0.20, height:0.52},
+  {ipa:'/æ/', word:'bat',    f1:588,  f2:1952, back:0.24, height:0.82},
+  {ipa:'/u/', word:'boot',   f1:378,  f2:997,  back:0.88, height:0.05},
+  {ipa:'/ʊ/', word:'book',   f1:469,  f2:1122, back:0.76, height:0.20},
+  {ipa:'/o/', word:'boat',   f1:497,  f2:1001, back:0.84, height:0.35},
+  {ipa:'/a/', word:'father', f1:608,  f2:1333, back:0.85, height:0.92},
+];
+
+let selVowel = vowelData[0];
+
+// F2: x-axis, decreasing right (2500 left → 800 right) like quadrilateral
+// F1: y-axis, increasing down (200 top → 700 bottom)
+const F2_MIN=800, F2_MAX=2500, F1_MIN=200, F1_MAX=700;
+
+function vowelToXY(v, W, H, padL, padR, padT, padB) {
+  const cW=W-padL-padR, cH=H-padT-padB;
+  const x=padL + (1-(v.f2-F2_MIN)/(F2_MAX-F2_MIN)) * cW; // F2 decreases right
+  const y=padT + ((v.f1-F1_MIN)/(F1_MAX-F1_MIN)) * cH;    // F1 increases down
+  return{x,y};
+}
+
+function drawScatter() {
+  const{ctx,W,H}=gCtx('scatterCanvas');
+  if(!ctx) return;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
+
+  const padL=30,padR=12,padT=24,padB=32;
+  const cW=W-padL-padR, cH=H-padT-padB;
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const x=padL+i*(cW/4); ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,H-padB); ctx.stroke();
+    const y=padT+i*(cH/4); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+  }
+
+  // Axis titles
+  ctx.fillStyle='rgba(45,212,191,0.55)'; ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('F2 — ORAL CAVITY  (high F2 = front tongue / small oral cavity)', W/2, padT-8);
+  ctx.save(); ctx.translate(12,H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(74,158,255,0.55)'; ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillText('F1 — PHARYNGEAL CAVITY  (high F1 = low tongue / small pharynx)', 0, 0);
+  ctx.restore();
+
+  // Plot vowels
+  vowelData.forEach(v=>{
+    const{x,y}=vowelToXY(v,W,H,padL,padR,padT,padB);
+    const isSel=v.ipa===selVowel.ipa;
+
+    // Ring
+    ctx.beginPath(); ctx.arc(x,y,isSel?14:10,0,Math.PI*2);
+    ctx.fillStyle=isSel?'rgba(255,201,4,0.18)':'rgba(74,158,255,0.08)';
+    ctx.fill();
+    ctx.strokeStyle=isSel?'#FFC904':'rgba(74,158,255,0.35)';
+    ctx.lineWidth=isSel?2:1; ctx.stroke();
+
+    // IPA
+    ctx.font=`${isSel?'bold ':''}${isSel?14:12}px IBM Plex Sans`;
+    ctx.fillStyle=isSel?'#FFC904':'rgba(220,230,245,0.85)';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(v.ipa,x,y);
+    if(isSel){
+      ctx.font='9px IBM Plex Sans'; ctx.fillStyle='rgba(255,201,4,0.6)';
+      ctx.fillText(v.word,x,y+20);
+    }
+  });
+  ctx.textBaseline='alphabetic';
+}
+
+function selectVowel(v) {
+  selVowel=v;
+  document.getElementById('v3Badge').textContent=v.ipa;
+  document.getElementById('v3Word').textContent=v.word;
+  document.getElementById('v3Vals').textContent=`F1: ${v.f1} Hz  |  F2: ${v.f2} Hz`;
+  drawScatter();
+  drawSagittalTongue('v3Sagittal', v.back, v.height, v.f1, v.f2);
+}
+
+// Scatter click
+document.addEventListener('DOMContentLoaded',()=>{
+  const sc=document.getElementById('scatterCanvas');
+  if(sc) sc.addEventListener('click',e=>{
+    const r=sc.getBoundingClientRect();
+    const cx=e.clientX-r.left, cy=e.clientY-r.top;
+    const W=sc.offsetWidth, H=parseInt(sc.style.height)||280;
+    const padL=30,padR=12,padT=24,padB=32;
+    let closest=null, minD=999;
+    vowelData.forEach(v=>{
+      const{x,y}=vowelToXY(v,W,H,padL,padR,padT,padB);
+      const d=Math.hypot(cx-x,cy-y);
+      if(d<minD){minD=d;closest=v;}
+    });
+    if(closest&&minD<30) selectVowel(closest);
+  });
+});
+
+/* ════════════════════════
+   INIT
+════════════════════════ */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    ['wavesInputCanvas','wavesSumCanvas','specSource','specPharynx','specOral','specOutput',
+     'sftSagittal','scatterCanvas','v3Sagittal'].forEach(initC);
+    updateWaves();
+    updateSFT();
+    drawScatter();
+    selectVowel(vowelData[0]);
+    waveLoop();
+  },80);
+});
+
+window.addEventListener('resize',()=>{
+  ['wavesInputCanvas','wavesSumCanvas','specSource','specPharynx','specOral','specOutput',
+   'sftSagittal','scatterCanvas','v3Sagittal'].forEach(initC);
+  updateSFT();
+  drawScatter();
+  selectVowel(selVowel);
+});
+</script>
+</body>
+</html>
