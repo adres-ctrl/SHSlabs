@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Transfers of Energy</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Exo 2','Segoe UI',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
+  .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
+  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+  .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
+  .lab-sub{font-size:13px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
+  .section-tag{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .section-note{font-size:13px;color:#8eb4d4;margin-bottom:16px;line-height:1.55;}
+  hr.div{border:none;border-top:1px solid #162135;margin:22px 0;}
+  .vis-outer{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;margin-bottom:14px;}
+  .vis-topbar{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:8px 12px 6px;border-bottom:1px solid #0e192e;display:flex;justify-content:space-between;align-items:center;}
+  canvas{display:block;width:100%;}
+  .info-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .info-ctag{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}
+  .info-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;}
+  .info-desc{font-size:13px;color:#8eb4d4;line-height:1.65;margin-bottom:12px;}
+  .fact-list{display:flex;flex-direction:column;gap:6px;}
+  .fact-item{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#8eb4d4;line-height:1.5;}
+  .fact-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+
+  /* ── PART 1 NAV ── */
+  .stage-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .nav-btn{background:#0b1424;border:1px solid #162135;color:#8eb4d4;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:7px;cursor:pointer;transition:all 0.15s;}
+  .nav-btn:hover{border-color:#FFC904;color:#FFC904;}
+  .nav-btn:disabled{opacity:0.3;cursor:default;}
+  .stage-dots{display:flex;gap:7px;align-items:center;}
+  .sdot{width:10px;height:10px;border-radius:50%;border:2px solid #162135;background:#060c18;transition:all 0.2s;cursor:pointer;}
+  .sdot.active{border-color:#FFC904;background:#FFC904;}
+  .sdot.done{border-color:#2dd4bf;background:#2dd4bf;}
+  .energy-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .stage-counter{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5a7a9a;}
+
+  /* ── PART 2 DAMPENING ── */
+  .damp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+  .damp-panel{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;}
+  .damp-lbl{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 12px 5px;border-bottom:1px solid #0e192e;}
+  canvas.damp-cv{display:block;width:100%;}
+  .dim-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:14px 14px 12px;margin-bottom:14px;}
+  .dim-card-title{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .dim-card-sub{font-size:11px;color:#5a7a9a;margin-bottom:10px;}
+  .dim-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-bottom:8px;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;outline:none;cursor:pointer;background:linear-gradient(90deg,#0b1424,#4a9eff);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#4a9eff;cursor:pointer;}
+  .readout-row{display:flex;gap:10px;margin-bottom:14px;}
+  .readout{flex:1;background:#060c18;border:1px solid #162135;border-radius:8px;padding:10px 12px;text-align:center;}
+  .readout-lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#5a7a9a;margin-bottom:4px;}
+  .readout-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;}
+
+  /* ── PART 3 BASILAR ── */
+  .tog-btn{background:#0b1424;border:1px solid #162135;color:#8eb4d4;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:7px;cursor:pointer;transition:all 0.15s;margin-bottom:14px;}
+  .tog-btn.lit{border-color:#FFC904;color:#FFC904;background:rgba(255,201,4,0.08);}
+  .tog-btn:hover{border-color:#FFC904;color:#FFC904;}
+  .freq-label{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#FFC904;margin-bottom:8px;}
+  .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Transfers of Energy Lab</div>
+    <div class="lab-sub">Aerodynamic · Mechanical · Hydraulic · Electrical</div>
+  </div>
+</div>
+
+<!-- ═══ PART 1: ENERGY CHAIN ═══════════════════════════════ -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">The Ear as an Energy Transducer</div>
+<div class="section-note">The auditory system performs three sequential energy conversions. Each stage transforms energy into a new form suited to the next structure. Step through each stage to see what converts what, and why.</div>
+
+<div class="stage-nav">
+  <button class="nav-btn" id="prevBtn" onclick="stepStage(-1)" disabled>◀ Prev</button>
+  <div class="stage-dots" id="stageDots"></div>
+  <button class="nav-btn" id="nextBtn" onclick="stepStage(1)">Next ▶</button>
+  <span class="stage-counter" id="stageCounter">Stage 1 of 4</span>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar">
+    <span id="stageLabel">Outer Ear</span>
+    <span id="energyBadge" class="energy-badge"></span>
+  </div>
+  <canvas id="stageCanvas" height="175"></canvas>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag" id="iConvert"></div>
+  <div class="info-title" id="iTitle"></div>
+  <div class="info-desc"  id="iDesc"></div>
+  <div class="fact-list"  id="iFacts"></div>
+</div>
+
+<hr class="div">
+
+<!-- ═══ PART 2: DAMPENING COMPARATOR ══════════════════════ -->
+<div class="section-tag">Part 2</div>
+<div class="section-title">Dampening Across Media</div>
+<div class="section-note">Each medium dissipates wave energy differently. Solid damping occurs through internal friction. Liquid damping through viscous shear. Gas (aerodynamic) damping through classical viscothermal losses. Drag the distance slider and watch how amplitude decays across each medium.</div>
+
+<div class="dim-card">
+  <div class="dim-card-title" style="color:#4a9eff;">Distance from Source</div>
+  <div class="dim-card-sub">Relative units — not absolute distance</div>
+  <div class="dim-val" id="distVal" style="color:#4a9eff;">0</div>
+  <input type="range" id="distSld" min="0" max="100" value="0" oninput="updateDamp()">
+</div>
+
+<div class="damp-grid">
+  <div class="damp-panel">
+    <div class="damp-lbl" style="color:#4a9eff;">Gas — Aerodynamic</div>
+    <canvas class="damp-cv" id="dampGas" height="110"></canvas>
+  </div>
+  <div class="damp-panel">
+    <div class="damp-lbl" style="color:#2dd4bf;">Solid — Mechanical</div>
+    <canvas class="damp-cv" id="dampSolid" height="110"></canvas>
+  </div>
+  <div class="damp-panel">
+    <div class="damp-lbl" style="color:#a78bfa;">Liquid — Hydraulic</div>
+    <canvas class="damp-cv" id="dampLiquid" height="110"></canvas>
+  </div>
+</div>
+
+<div class="readout-row">
+  <div class="readout">
+    <div class="readout-lbl">Gas Amplitude</div>
+    <div class="readout-val" id="ampGas" style="color:#4a9eff;">100%</div>
+  </div>
+  <div class="readout">
+    <div class="readout-lbl">Solid Amplitude</div>
+    <div class="readout-val" id="ampSolid" style="color:#2dd4bf;">100%</div>
+  </div>
+  <div class="readout">
+    <div class="readout-lbl">Liquid Amplitude</div>
+    <div class="readout-val" id="ampLiquid" style="color:#a78bfa;">100%</div>
+  </div>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag">Decay Mechanisms</div>
+  <div class="info-title">Why Each Medium Behaves Differently</div>
+  <div class="info-desc">All three media show exponential amplitude decay with distance — energy loss is proportional to the energy remaining at each point. What differs is the rate and mechanism. Solid damping via internal friction tends to be moderate; liquid (hydraulic) damping via viscous shear is typically steeper at higher frequencies; gas (aerodynamic) shows the weakest classical bulk damping, meaning sound travels the farthest in air before significant energy loss from these mechanisms.</div>
+  <div class="fact-list">
+    <div class="fact-item"><div class="fact-dot" style="background:#2dd4bf;"></div><span>Solid: Internal friction converts mechanical vibration to heat. Lower frequencies travel further — relevant to bone conduction in the skull.</span></div>
+    <div class="fact-item"><div class="fact-dot" style="background:#a78bfa;"></div><span>Liquid: Viscous shear between fluid layers dissipates energy. Thicker fluid = steeper decay. Relevant in otitis media — fluid in the middle ear significantly attenuates the signal.</span></div>
+    <div class="fact-item"><div class="fact-dot" style="background:#4a9eff;"></div><span>Gas: Weakest classical bulk damping among the three. The ear canal and middle ear air space introduce relatively little energy loss compared to a fluid-filled space.</span></div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══ PART 3: BASILAR MEMBRANE ══════════════════════════ -->
+<div class="section-tag">Part 3</div>
+<div class="section-title">Basilar Membrane Tonotopy</div>
+<div class="section-note">The basilar membrane is stiff and narrow at the base (high frequencies) and wide and flexible at the apex (low frequencies). Different input frequencies cause maximum displacement at different locations — this is called tonotopy. Adjust the frequency slider to see where along the membrane that frequency resonates.</div>
+
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+  <div style="flex:1;min-width:200px;">
+    <div class="freq-label" id="freqDisplay">1,000 Hz</div>
+    <input type="range" id="freqSld" min="0" max="100" value="53" oninput="updateBasilar()"
+      style="background:linear-gradient(90deg,#ff4444,#ff8800,#FFC904,#4ade80,#4a9eff);">
+  </div>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar">
+    <span>Coiled View — Outer = Base (High Freq), Inner = Apex (Low Freq)</span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5a7a9a;" id="posLabel"></span>
+  </div>
+  <canvas id="basilarCv" height="200"></canvas>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag" id="bCtag">Frequency Region</div>
+  <div class="info-title" id="bTitle"></div>
+  <div class="info-desc"  id="bDesc"></div>
+  <div class="fact-list">
+    <div class="fact-item"><div class="fact-dot" style="background:#FFC904;"></div><span>The basilar membrane is ~35 mm long and performs all frequency analysis before any neural processing occurs. It is the ear's built-in spectrum analyzer.</span></div>
+    <div class="fact-item"><div class="fact-dot" style="background:#4a9eff;"></div><span>Speech energy is concentrated between roughly 500–4,000 Hz — this occupies the middle third of the basilar membrane.</span></div>
+    <div class="fact-item"><div class="fact-dot" style="background:#2dd4bf;"></div><span>Noise-induced hearing loss typically damages the 4,000 Hz region first — it sits near the base where the membrane is stiffest and receives maximum mechanical stress.</span></div>
+  </div>
+</div>
+
+<div class="footer">© 2025 Adam Reres</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   SHARED UTILS
+══════════════════════════════════════════════ */
+const NTBL=new Float32Array(2048);
+(()=>{for(let i=0;i<NTBL.length;i++){const x=Math.sin(i*127.1)*43758.5;NTBL[i]=(x-Math.floor(x))*2-1;}})();
+function nz(x){return NTBL[((Math.abs(x*7))>>>0)%NTBL.length];}
+
+/* ══════════════════════════════════════════════
+   PART 1 — ENERGY CHAIN
+══════════════════════════════════════════════ */
+const STAGES=[
+  { label:'Outer Ear', energy:'Aerodynamic — Air Pressure', eColor:'#4a9eff',
+    convert:'Collecting & Directing (no conversion yet)',
+    title:'Sound Enters the System',
+    desc:'The pinna collects acoustic energy and funnels it into the ear canal. The canal acts as a resonating tube, boosting frequencies around 3,000 Hz by roughly 10–15 dB. No energy conversion occurs yet — the outer ear is purely a collection and direction system.',
+    facts:[
+      'Human pinnae are fixed — we localize sound by turning our heads. Many mammals have mobile pinnae for directional hearing.',
+      'The ear canal resonance provides passive amplification that helps hearing in the speech frequency range before any neural processing.',
+      'Energy at this stage is entirely aerodynamic — pressure waves traveling through air.'
+    ]
+  },
+  { label:'Middle Ear', energy:'Mechanical — Vibration', eColor:'#2dd4bf',
+    convert:'Aerodynamic → Mechanical (1st conversion)',
+    title:'Pressure Waves Become Vibration',
+    desc:'The tympanic membrane converts air pressure waves into mechanical vibration. The ossicular chain (malleus → incus → stapes) transmits and amplifies that vibration. The TM area (~55 mm²) is roughly 17× larger than the oval window (~3.2 mm²), concentrating force. Lever geometry of the ossicles adds further gain — together providing ~25–30 dB of impedance-matching amplification.',
+    facts:[
+      'The stapedius muscle contracts in response to sounds above ~80 dB HL, pulling the stapes sideways to reduce transmission. This is the acoustic (stapedial) reflex.',
+      'The middle ear is air-filled and ventilated by the Eustachian tube. Fluid accumulation (otitis media with effusion) turns this stage into a hydraulic medium and significantly reduces transmission.',
+      'Without the middle ear\'s impedance matching, ~99.9% of sound energy would be reflected at the air-fluid boundary of the cochlea.'
+    ]
+  },
+  { label:'Inner Ear', energy:'Hydraulic — Fluid Wave', eColor:'#a78bfa',
+    convert:'Mechanical → Hydraulic (2nd conversion)',
+    title:'Vibration Becomes a Fluid Wave',
+    desc:'The stapes footplate pushes on the oval window membrane, converting mechanical vibration into fluid waves within the cochlea. The wave travels through the scala vestibuli and scala tympani, displacing the basilar membrane along the way. The membrane\'s varying stiffness — stiff and narrow at the base, wide and flexible at the apex — performs frequency analysis. The round window bulges outward as a pressure relief valve.',
+    facts:[
+      'The cochlea contains two fluid types: perilymph (surrounding the scala media) and endolymph (inside the scala media). Endolymph has unusually high K⁺ concentration — this drives hair cell transduction.',
+      'The basilar membrane is ~35 mm long and tonotopically organized: base responds to high frequencies, apex to low frequencies.',
+      'The round window membrane moves opposite to the oval window, providing the pressure relief that allows fluid to move at all.'
+    ]
+  },
+  { label:'Cochlea / Auditory Nerve', energy:'Electrical — Electrochemical', eColor:'#FFC904',
+    convert:'Hydraulic → Electrical (3rd conversion)',
+    title:'Fluid Movement Becomes a Neural Signal',
+    desc:'Basilar membrane displacement bends the stereocilia of the hair cells in the Organ of Corti. This opens mechanically-gated ion channels, allowing K⁺ ions to flow in from the endolymph. The resulting depolarization triggers glutamate release, which fires the auditory nerve fibers (CN VIII) that carry the signal toward the brainstem and auditory cortex.',
+    facts:[
+      '~3,500 inner hair cells perform most transduction — about 95% of auditory nerve fibers synapse on them.',
+      '~12,000 outer hair cells act as active amplifiers through electromotility (prestin protein), boosting basilar membrane motion by up to 40–60 dB.',
+      'Hair cell damage is permanent in humans — they do not regenerate. This is why sensorineural hearing loss is typically irreversible.'
+    ]
+  }
+];
+
+let curStage=0;
+
+/* ── STAGE DIAGRAM DRAWING ── */
+function drawStage(idx){
+  const cv=document.getElementById('stageCanvas');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.parentElement.offsetWidth||600;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(175*dpr);
+  cv.style.height='175px';
+  const c=cv.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,175);
+
+  const col=STAGES[idx].eColor;
+
+  if(idx===0) drawOuterEar(c,W,col);
+  else if(idx===1) drawMiddleEar(c,W,col);
+  else if(idx===2) drawInnerEar(c,W,col);
+  else drawHairCells(c,W,col);
+}
+
+function arrow(c,x1,y1,x2,y2,col,w=1.5){
+  c.strokeStyle=col; c.lineWidth=w;
+  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+  const ang=Math.atan2(y2-y1,x2-x1);
+  const as=7;
+  c.fillStyle=col;
+  c.beginPath();
+  c.moveTo(x2,y2);
+  c.lineTo(x2-as*Math.cos(ang-0.4),y2-as*Math.sin(ang-0.4));
+  c.lineTo(x2-as*Math.cos(ang+0.4),y2-as*Math.sin(ang+0.4));
+  c.closePath(); c.fill();
+}
+
+function label(c,txt,x,y,col,sz=10,align='center'){
+  c.fillStyle=col; c.font=`${sz}px IBM Plex Mono,monospace`; c.textAlign=align;
+  c.fillText(txt,x,y);
+}
+
+function box(c,x,y,w,h,col,fill='rgba(0,0,0,0)',r=5){
+  c.fillStyle=fill; c.strokeStyle=col; c.lineWidth=1.5;
+  c.beginPath(); c.roundRect(x,y,w,h,r); c.fill(); c.stroke();
+}
+
+/* Stage 0 — Outer Ear */
+function drawOuterEar(c,W,col){
+  const mid=87;
+  // sound waves (left)
+  for(let i=0;i<3;i++){
+    const ox=28+i*14;
+    c.strokeStyle=`rgba(74,158,255,${0.4+i*0.2})`; c.lineWidth=1.5;
+    c.beginPath();
+    for(let y=30;y<145;y+=2){
+      const x=ox+Math.sin((y-30)*0.18+i)*8;
+      if(y===30) c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.stroke();
+  }
+  label(c,'Sound',44,22,col,9);
+  label(c,'Waves',44,34,col,9);
+
+  arrow(c,82,mid,108,mid,col,2);
+
+  // Pinna (C-shape arc)
+  c.strokeStyle=col; c.lineWidth=3;
+  c.beginPath(); c.arc(115,mid,26,Math.PI*0.55,Math.PI*1.45,false); c.stroke();
+  label(c,'Pinna',115,mid+42,col,9);
+
+  arrow(c,142,mid,165,mid,col,2);
+
+  // Ear canal
+  box(c,165,mid-18,155,36,col,'rgba(74,158,255,0.08)',3);
+  label(c,'Ear Canal',242,mid+5,col,9);
+
+  arrow(c,320,mid,344,mid,col,2);
+
+  // TM (ellipse)
+  c.strokeStyle=col; c.lineWidth=2;
+  c.beginPath(); c.ellipse(355,mid,10,26,0,0,Math.PI*2); c.stroke();
+  c.fillStyle='rgba(74,158,255,0.12)'; c.fill();
+  label(c,'TM',355,mid+40,col,9);
+
+  // vibration marks on TM
+  for(let i=-1;i<=1;i++){
+    c.strokeStyle=`rgba(74,158,255,0.5)`; c.lineWidth=1;
+    c.beginPath(); c.moveTo(368,mid+i*10); c.lineTo(380,mid+i*10); c.stroke();
+  }
+}
+
+/* Stage 1 — Middle Ear */
+function drawMiddleEar(c,W,col){
+  const mid=87; const y0=mid;
+  // TM
+  c.strokeStyle=col; c.lineWidth=2;
+  c.beginPath(); c.ellipse(50,y0,10,28,0,0,Math.PI*2); c.stroke();
+  c.fillStyle='rgba(45,212,191,0.1)'; c.fill();
+  label(c,'TM',50,y0+42,col,9);
+
+  arrow(c,62,y0,82,y0,col,2);
+
+  // Malleus (vertical bar + head)
+  c.strokeStyle=col; c.lineWidth=2;
+  c.fillStyle='rgba(45,212,191,0.15)';
+  // handle
+  c.beginPath(); c.roundRect(85,y0-22,8,44,2); c.fill(); c.stroke();
+  // head (wider)
+  c.beginPath(); c.roundRect(80,y0-32,18,14,3); c.fill(); c.stroke();
+  label(c,'Malleus',89,y0+42,col,9);
+
+  // Incus connector
+  c.strokeStyle=col; c.lineWidth=2;
+  c.fillStyle='rgba(45,212,191,0.15)';
+  c.beginPath(); c.roundRect(100,y0-28,22,18,3); c.fill(); c.stroke();
+  c.beginPath(); c.roundRect(116,y0-14,8,28,2); c.fill(); c.stroke();
+  label(c,'Incus',111,y0+42,col,9);
+
+  // Stapes (U-shape)
+  c.strokeStyle=col; c.lineWidth=2.5;
+  c.fillStyle='rgba(45,212,191,0.15)';
+  // footplate
+  c.beginPath(); c.roundRect(138,y0+4,16,8,2); c.fill(); c.stroke();
+  // arches
+  c.beginPath(); c.moveTo(141,y0+4); c.lineTo(141,y0-12); c.lineTo(152,y0-12); c.lineTo(152,y0+4); c.stroke();
+  label(c,'Stapes',148,y0+42,col,9);
+
+  arrow(c,158,y0+8,178,y0+8,col,2);
+
+  // Oval Window
+  c.strokeStyle=col; c.lineWidth=2;
+  c.fillStyle='rgba(45,212,191,0.12)';
+  c.beginPath(); c.ellipse(190,y0+8,11,20,0,0,Math.PI*2); c.fill(); c.stroke();
+  label(c,'Oval',190,y0+38,col,9);
+  label(c,'Window',190,y0+50,col,9);
+
+  // middle ear space boundary
+  c.strokeStyle='rgba(45,212,191,0.18)'; c.lineWidth=1; c.setLineDash([3,4]);
+  c.strokeRect(60,y0-48,145,100);
+  c.setLineDash([]);
+  label(c,'Middle Ear Space  (air-filled, ~2 ml)',132,y0-52,'rgba(45,212,191,0.5)',9);
+
+  // impedance match note
+  label(c,'TM:OW area ratio ≈ 17:1  →  ~25–30 dB gain',130,y0+65,`rgba(45,212,191,0.55)`,10);
+}
+
+/* Stage 2 — Inner Ear */
+function drawInnerEar(c,W,col){
+  const mid=80;
+  // Stapes at oval window
+  c.strokeStyle=col; c.lineWidth=2; c.fillStyle='rgba(167,139,250,0.15)';
+  c.beginPath(); c.ellipse(42,mid,10,20,0,0,Math.PI*2); c.fill(); c.stroke();
+  label(c,'Oval Win.',42,mid+32,col,9);
+  arrow(c,54,mid,75,mid,col,2);
+
+  // Cochlea — unrolled tube (2 chambers + basilar membrane)
+  const tx=75, tw=W-145, th=50;
+  // Scala vestibuli (top)
+  box(c,tx,mid-th/2,tw,th/2-1,'rgba(167,139,250,0.6)','rgba(167,139,250,0.08)',0);
+  label(c,'Scala Vestibuli  →  perilymph',tx+tw/2,mid-8,`rgba(167,139,250,0.7)`,9);
+  // Scala tympani (bottom)
+  box(c,tx,mid+1,tw,th/2-1,'rgba(167,139,250,0.6)','rgba(167,139,250,0.08)',0);
+  label(c,'Scala Tympani  ←  perilymph',tx+tw/2,mid+18,'rgba(167,139,250,0.7)',9);
+  // Basilar membrane (center line)
+  c.strokeStyle=col; c.lineWidth=2;
+  c.beginPath(); c.moveTo(tx,mid); c.lineTo(tx+tw,mid); c.stroke();
+  label(c,'Basilar Membrane',tx+tw/2,mid-3,col,9);
+  // fluid flow arrows
+  for(let i=1;i<=4;i++){
+    const fx=tx+i*(tw/5);
+    arrow(c,fx,mid-18,fx+22,mid-18,'rgba(167,139,250,0.55)',1.2);
+  }
+  for(let i=4;i>=1;i--){
+    const fx=tx+i*(tw/5);
+    arrow(c,fx+22,mid+16,fx,mid+16,'rgba(167,139,250,0.55)',1.2);
+  }
+  // Helicotrema (connection at apex)
+  c.strokeStyle=`rgba(167,139,250,0.5)`; c.lineWidth=2;
+  c.beginPath(); c.arc(tx+tw,mid,24,Math.PI*1.5,Math.PI*0.5,false); c.stroke();
+  label(c,'Apex',tx+tw+8,mid+36,'rgba(167,139,250,0.6)',9);
+  label(c,'Base',tx-4,mid+36,'rgba(167,139,250,0.6)',9);
+  // Round window
+  c.strokeStyle=col; c.lineWidth=2; c.fillStyle='rgba(167,139,250,0.12)';
+  c.beginPath(); c.ellipse(W-42,mid+28,10,16,0,0,Math.PI*2); c.fill(); c.stroke();
+  label(c,'Round Win.',W-42,mid+50,col,9);
+  arrow(c,tx+tw-5,mid+28,W-54,mid+28,col,1.5);
+}
+
+/* Stage 3 — Hair Cells */
+function drawHairCells(c,W,col){
+  const baseY=150;
+  // Basilar membrane
+  c.strokeStyle='rgba(255,201,4,0.6)'; c.lineWidth=3;
+  c.beginPath(); c.moveTo(30,baseY); c.lineTo(W-30,baseY); c.stroke();
+  label(c,'Basilar Membrane',W/2,baseY+14,'rgba(255,201,4,0.6)',9);
+
+  // 4 hair cells
+  const hcW=32, hcH=36, ncells=4;
+  const totalW=ncells*(hcW+28)-28;
+  const startX=(W-totalW)/2;
+
+  for(let i=0;i<ncells;i++){
+    const hx=startX+i*(hcW+28);
+    const hy=baseY-hcH-2;
+    // cell body
+    c.fillStyle='rgba(255,201,4,0.12)'; c.strokeStyle=col; c.lineWidth=1.5;
+    c.beginPath(); c.roundRect(hx,hy,hcW,hcH,4); c.fill(); c.stroke();
+    // stereocilia (bundle of lines on top)
+    const nc2=5;
+    for(let s=0;s<nc2;s++){
+      const sx=hx+4+s*(hcW-8)/(nc2-1);
+      const height=12+Math.abs(s-2)*3; // graduated heights
+      c.strokeStyle=col; c.lineWidth=1.5;
+      c.beginPath(); c.moveTo(sx,hy); c.lineTo(sx,hy-height); c.stroke();
+      // tip link dot
+      c.fillStyle=col;
+      c.beginPath(); c.arc(sx,hy-height,2,0,Math.PI*2); c.fill();
+    }
+    // K+ ion arrows
+    c.fillStyle='rgba(255,201,4,0.7)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+    c.fillText('K⁺→',hx+hcW/2,hy+16);
+    // nerve fiber below
+    c.strokeStyle='rgba(255,201,4,0.5)'; c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(hx+hcW/2,baseY); c.lineTo(hx+hcW/2,baseY+22); c.stroke();
+  }
+
+  // nerve bundle
+  c.strokeStyle=col; c.lineWidth=2;
+  c.beginPath(); c.moveTo(startX+hcW/2,baseY+22); c.lineTo(startX+totalW+hcW/2,baseY+22); c.stroke();
+  // arrow right to auditory nerve
+  arrow(c,startX+totalW+hcW/2,baseY+22,startX+totalW+hcW/2+30,baseY+22,col,2);
+  label(c,'Auditory Nerve (CN VIII)',W/2,baseY+35,col,10);
+
+  // labels
+  label(c,'Stereocilia',W/2,52,'rgba(255,201,4,0.6)',9);
+  label(c,'Hair Cells',W/2,120,'rgba(255,201,4,0.5)',9);
+
+  // ion channel note top right
+  label(c,'K⁺ influx → depolarization → glutamate release → nerve firing',W/2,16,'rgba(255,201,4,0.5)',9);
+}
+
+/* ── STAGE NAV ── */
+function updateStageUI(){
+  const s=STAGES[curStage];
+  document.getElementById('stageLabel').textContent=s.label;
+  const badge=document.getElementById('energyBadge');
+  badge.textContent=s.energy;
+  badge.style.background=s.eColor+'22';
+  badge.style.color=s.eColor;
+  badge.style.border=`1px solid ${s.eColor}55`;
+  document.getElementById('iConvert').textContent=s.convert;
+  document.getElementById('iConvert').style.color=s.eColor;
+  document.getElementById('iTitle').textContent=s.title;
+  document.getElementById('iDesc').textContent=s.desc;
+  const fl=document.getElementById('iFacts');
+  fl.innerHTML='';
+  s.facts.forEach(f=>{
+    const row=document.createElement('div'); row.className='fact-item';
+    const dot=document.createElement('div'); dot.className='fact-dot'; dot.style.background=s.eColor;
+    const sp=document.createElement('span'); sp.textContent=f;
+    row.appendChild(dot); row.appendChild(sp); fl.appendChild(row);
+  });
+  document.getElementById('stageCounter').textContent=`Stage ${curStage+1} of ${STAGES.length}`;
+  document.getElementById('prevBtn').disabled=curStage===0;
+  document.getElementById('nextBtn').disabled=curStage===STAGES.length-1;
+  // dots
+  const dotsEl=document.getElementById('stageDots');
+  dotsEl.innerHTML='';
+  STAGES.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='sdot'+(i===curStage?' active':i<curStage?' done':'');
+    d.onclick=()=>{curStage=i;updateStageUI();drawStage(i);};
+    dotsEl.appendChild(d);
+  });
+  drawStage(curStage);
+}
+
+function stepStage(dir){
+  curStage=Math.max(0,Math.min(STAGES.length-1,curStage+dir));
+  updateStageUI();
+}
+
+/* ══════════════════════════════════════════════
+   PART 2 — DAMPENING
+══════════════════════════════════════════════ */
+// Decay rates: solid=moderate, liquid=steeper, gas=gentlest
+const DECAY={solid:2.8, liquid:4.5, gas:1.4};
+const DECAY_COLORS={solid:'#2dd4bf', liquid:'#a78bfa', gas:'#4a9eff'};
+
+function ampAt(type,dist){
+  return Math.exp(-DECAY[type]*(dist/100));
+}
+
+function drawDampCanvas(cvId,type,dist){
+  const cv=document.getElementById(cvId);
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.parentElement.offsetWidth||180;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(110*dpr);
+  cv.style.height='110px';
+  const c=cv.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,110);
+
+  const col=DECAY_COLORS[type];
+  const mid=58;
+  const maxAmp=38;
+  const freq=0.042; // wave frequency for display
+
+  // draw decaying wave
+  c.beginPath();
+  for(let px2=0;px2<W;px2++){
+    const d=px2/W; // normalized distance 0-1
+    const env=Math.exp(-DECAY[type]*d);
+    const y=mid-env*maxAmp*Math.sin(px2*freq*Math.PI*2);
+    if(px2===0) c.moveTo(px2,y); else c.lineTo(px2,y);
+  }
+  c.strokeStyle=`${col}99`; c.lineWidth=1.5; c.stroke();
+
+  // envelope curve
+  c.beginPath();
+  for(let px2=0;px2<W;px2++){
+    const d=px2/W;
+    const env=Math.exp(-DECAY[type]*d);
+    const y=mid-env*maxAmp;
+    if(px2===0) c.moveTo(px2,y); else c.lineTo(px2,y);
+  }
+  c.strokeStyle=`${col}44`; c.lineWidth=1; c.setLineDash([2,3]); c.stroke();
+  c.setLineDash([]);
+  c.beginPath();
+  for(let px2=0;px2<W;px2++){
+    const d=px2/W;
+    const env=Math.exp(-DECAY[type]*d);
+    const y=mid+env*maxAmp;
+    if(px2===0) c.moveTo(px2,y); else c.lineTo(px2,y);
+  }
+  c.strokeStyle=`${col}44`; c.lineWidth=1; c.setLineDash([2,3]); c.stroke();
+  c.setLineDash([]);
+
+  // distance marker
+  const markerX=Math.round((dist/100)*W);
+  c.strokeStyle=col; c.lineWidth=1.5;
+  c.beginPath(); c.moveTo(markerX,8); c.lineTo(markerX,108); c.stroke();
+
+  // amplitude dot at marker
+  const dNorm=markerX/W;
+  const env=Math.exp(-DECAY[type]*dNorm);
+  const dotY=mid-env*maxAmp*Math.sin(markerX*freq*Math.PI*2);
+  c.fillStyle=col;
+  c.beginPath(); c.arc(markerX,dotY,4,0,Math.PI*2); c.fill();
+
+  // axis
+  c.strokeStyle='rgba(255,255,255,0.07)'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,mid); c.lineTo(W,mid); c.stroke();
+
+  // labels
+  c.fillStyle='rgba(255,255,255,0.25)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='left';
+  c.fillText('Source',2,106);
+  c.textAlign='right';
+  c.fillText('Far',W-2,106);
+}
+
+function updateDamp(){
+  const dist=parseInt(document.getElementById('distSld').value);
+  document.getElementById('distVal').textContent=dist;
+  ['solid','liquid','gas'].forEach(t=>{
+    const cvId=`damp${t.charAt(0).toUpperCase()+t.slice(1)}`;
+    drawDampCanvas(cvId,t,dist);
+    const pct=Math.round(ampAt(t,dist)*100);
+    document.getElementById(`amp${t.charAt(0).toUpperCase()+t.slice(1)}`).textContent=pct+'%';
+  });
+}
+
+/* ══════════════════════════════════════════════
+   PART 3 — BASILAR MEMBRANE
+   Greenwood function: x(mm) = log10(f/165.4+0.88)/0.06
+   Total length ~35mm, ~2.75 turns
+══════════════════════════════════════════════ */
+let coiled=false;
+const BMAX=35; // mm
+const BTURNS=2.75;
+const FREQ_MARKERS=[
+  {f:125,  lbl:'125'},
+  {f:250,  lbl:'250'},
+  {f:500,  lbl:'500'},
+  {f:1000, lbl:'1k'},
+  {f:2000, lbl:'2k'},
+  {f:4000, lbl:'4k'},
+  {f:8000, lbl:'8k'},
+];
+
+function freqToPos(f){
+  // returns 0=base(high freq), 1=apex(low freq)
+  const xMM=Math.log10(f/165.4+0.88)/0.06;
+  return 1-(Math.min(Math.max(xMM,0),BMAX)/BMAX);
+}
+
+function sliderToFreq(v){
+  // v: 0-100 → 125-16000 Hz (log scale)
+  return Math.round(125*Math.pow(16000/125, v/100));
+}
+
+function getFreqRegion(f){
+  if(f>=8000) return {region:'High Frequency Region',color:'#4a9eff',
+    desc:'Near the cochlear base. Stiff, narrow basilar membrane. 4–8 kHz is the most common region of noise-induced hearing loss. The 4kHz notch on an audiogram is a hallmark of acoustic trauma.'};
+  if(f>=2000) return {region:'Upper-Mid Frequency Region',color:'#4ade80',
+    desc:'Upper speech range. Consonant clarity (fricatives, affricates) depends heavily on 2–4 kHz. Hearing loss in this region significantly impacts speech intelligibility in noise.'};
+  if(f>=500) return {region:'Core Speech Frequency Region',color:'#FFC904',
+    desc:'The primary speech range. Vowel formants (F1 and F2) fall largely between 500–3,000 Hz. Most of the acoustic information needed for speech perception is concentrated here.'};
+  if(f>=125) return {region:'Low Frequency Region',color:'#ff8800',
+    desc:'Near the cochlear apex. Wide, flexible basilar membrane. Carries prosodic and intonation information (F0 in the 80–300 Hz range), vowel quality, and some voiced consonant energy.'};
+  return {region:'Very Low Frequency',color:'#ff4444',
+    desc:'Extreme apex. Very few auditory nerve fibers cover this range. Important for bass frequencies in music and some environmental sounds but not critical for speech.'};
+}
+
+function drawUnrolled(c,W,H,pos,freq){
+  const padL=44,padR=16,padT=28,padB=32;
+  const bW=W-padL-padR;
+
+  // frequency color gradient along membrane
+  const grad=c.createLinearGradient(padL,0,padL+bW,0);
+  grad.addColorStop(0,'#4a9eff');    // base: high freq - blue
+  grad.addColorStop(0.3,'#4ade80'); // mid: green
+  grad.addColorStop(0.55,'#FFC904'); // speech: gold
+  grad.addColorStop(0.75,'#ff8800'); // low: orange
+  grad.addColorStop(1,'#ff4444');   // apex: red
+
+  const memY=H/2;
+  // membrane body
+  c.fillStyle=grad;
+  c.beginPath(); c.roundRect(padL,memY-6,bW,12,3); c.fill();
+
+  // frequency marker ticks
+  FREQ_MARKERS.forEach(({f,lbl})=>{
+    const p=freqToPos(f);
+    const x=padL+p*bW;
+    c.strokeStyle='rgba(255,255,255,0.35)'; c.lineWidth=1;
+    c.beginPath(); c.moveTo(x,memY-14); c.lineTo(x,memY+14); c.stroke();
+    c.fillStyle='rgba(220,231,245,0.55)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+    c.fillText(lbl,x,memY+26);
+  });
+
+  // end labels
+  c.fillStyle='rgba(74,158,255,0.8)'; c.font='bold 10px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillText('BASE',padL,14); c.fillText('High Freq',padL,26);
+  c.fillStyle='rgba(255,68,68,0.8)';
+  c.fillText('APEX',padL+bW,14); c.fillText('Low Freq',padL+bW,26);
+
+  // Hz label row
+  c.fillStyle='rgba(220,231,245,0.3)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='left';
+  c.fillText('Hz →',padL,memY+26+14);
+
+  // stiffness labels
+  c.fillStyle='rgba(74,158,255,0.5)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillText('Stiff & Narrow',padL+30,memY-18);
+  c.fillStyle='rgba(255,68,68,0.5)';
+  c.fillText('Wide & Flexible',padL+bW-44,memY-18);
+
+  // active peak
+  const markerX=padL+pos*bW;
+  const {color}=getFreqRegion(freq);
+  c.shadowColor=color; c.shadowBlur=14;
+  c.strokeStyle=color; c.lineWidth=2.5;
+  c.beginPath(); c.moveTo(markerX,memY-34); c.lineTo(markerX,memY+34); c.stroke();
+  c.shadowBlur=0;
+  // peak dot
+  c.fillStyle=color;
+  c.beginPath(); c.arc(markerX,memY,8,0,Math.PI*2); c.fill();
+  // freq label above peak
+  c.fillStyle=color; c.font='bold 11px IBM Plex Mono,monospace'; c.textAlign='center';
+  const fStr=freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+'k Hz':freq+' Hz';
+  c.fillText(fStr,markerX,memY-40);
+}
+
+function drawCoiled(c,W,H,pos,freq){
+  const cx=W/2, cy=H/2+10;
+  const maxR=Math.min(W,H)*0.40;
+  const minR=maxR*0.14;
+  const totalAngle=BTURNS*2*Math.PI;
+  const steps=600;
+
+  // frequency color gradient along spiral
+  // pos=0 is base (outer), pos=1 is apex (inner)
+  // in spiral: t=0 is outer (base), t=1 is inner (apex)
+
+  for(let i=0;i<steps-1;i++){
+    const t=i/steps;
+    const t1=(i+1)/steps;
+    const ang=-Math.PI/2+t*totalAngle;
+    const ang1=-Math.PI/2+t1*totalAngle;
+    const r=maxR-t*(maxR-minR);
+    const r1=maxR-t1*(maxR-minR);
+    const x0=cx+r*Math.cos(ang), y0=cy+r*Math.sin(ang);
+    const x1=cx+r1*Math.cos(ang1), y1=cy+r1*Math.sin(ang1);
+    // color based on t (0=base/blue → 1=apex/red)
+    const cc=t<0.3?lerpColor('#4a9eff','#4ade80',t/0.3):
+              t<0.55?lerpColor('#4ade80','#FFC904',(t-0.3)/0.25):
+              t<0.75?lerpColor('#FFC904','#ff8800',(t-0.55)/0.2):
+              lerpColor('#ff8800','#ff4444',(t-0.75)/0.25);
+    c.strokeStyle=cc+'cc'; c.lineWidth=6;
+    c.beginPath(); c.moveTo(x0,y0); c.lineTo(x1,y1); c.stroke();
+  }
+
+  // active peak marker
+  const t=pos; // 0=base(outer), 1=apex(inner)
+  const ang=-Math.PI/2+t*totalAngle;
+  const r=maxR-t*(maxR-minR);
+  const px=cx+r*Math.cos(ang), py=cy+r*Math.sin(ang);
+  const {color}=getFreqRegion(freq);
+  c.shadowColor=color; c.shadowBlur=16;
+  c.fillStyle=color;
+  c.beginPath(); c.arc(px,py,8,0,Math.PI*2); c.fill();
+  c.shadowBlur=0;
+  c.strokeStyle='#060c18'; c.lineWidth=2;
+  c.beginPath(); c.arc(px,py,8,0,Math.PI*2); c.stroke();
+
+  // freq label near marker
+  c.fillStyle=color; c.font='bold 11px IBM Plex Mono,monospace'; c.textAlign='center';
+  const fStr=freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+'k Hz':freq+' Hz';
+  const labelR=r+(r>maxR*0.6?18:-18);
+  c.fillText(fStr, cx+labelR*Math.cos(ang), cy+labelR*Math.sin(ang));
+
+  // oval window label (base)
+  const baseAng=-Math.PI/2;
+  const bx=cx+maxR*Math.cos(baseAng), by=cy+maxR*Math.sin(baseAng);
+  c.fillStyle='rgba(74,158,255,0.7)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillText('Base',bx,by-16); c.fillText('(Oval Win.)',bx,by-6);
+
+  // apex label
+  const apexAng=-Math.PI/2+totalAngle;
+  const ax=cx+minR*Math.cos(apexAng), ay=cy+minR*Math.sin(apexAng);
+  c.fillStyle='rgba(255,68,68,0.7)';
+  c.fillText('Apex',ax,ay-10);
+
+  // frequency marker dots on spiral
+  FREQ_MARKERS.forEach(({f,lbl})=>{
+    const tp=freqToPos(f);
+    const fa=-Math.PI/2+tp*totalAngle;
+    const fr=maxR-tp*(maxR-minR);
+    const fx=cx+fr*Math.cos(fa), fy=cy+fr*Math.sin(fa);
+    c.fillStyle='rgba(255,255,255,0.35)';
+    c.beginPath(); c.arc(fx,fy,3,0,Math.PI*2); c.fill();
+  });
+}
+
+function lerpColor(a,b,t){
+  const ah=a.replace('#',''), bh=b.replace('#','');
+  const ar=parseInt(ah.slice(0,2),16),ag=parseInt(ah.slice(2,4),16),ab2=parseInt(ah.slice(4,6),16);
+  const br=parseInt(bh.slice(0,2),16),bg=parseInt(bh.slice(2,4),16),bb=parseInt(bh.slice(4,6),16);
+  const r=Math.round(ar+(br-ar)*t),g=Math.round(ag+(bg-ag)*t),b2=Math.round(ab2+(bb-ab2)*t);
+  return '#'+r.toString(16).padStart(2,'0')+g.toString(16).padStart(2,'0')+b2.toString(16).padStart(2,'0');
+}
+
+function updateBasilar(){
+  const v=parseInt(document.getElementById('freqSld').value);
+  const freq=sliderToFreq(v);
+  const pos=freqToPos(freq);
+  document.getElementById('freqDisplay').textContent=freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+',000 Hz':freq+' Hz';
+  const pct=Math.round(pos*100);
+  document.getElementById('posLabel').textContent=`${pct}% from base`;
+
+  const cv=document.getElementById('basilarCv');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.parentElement.offsetWidth||600;
+  const H=200;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.height=H+'px';
+  const c2=cv.getContext('2d');
+  c2.setTransform(dpr,0,0,dpr,0,0);
+  c2.clearRect(0,0,W,H);
+
+  drawCoiled(c2,W,H,pos,freq);
+
+  const {region,color,desc}=getFreqRegion(freq);
+  document.getElementById('bCtag').textContent=region;
+  document.getElementById('bCtag').style.color=color;
+  document.getElementById('bTitle').textContent=
+    freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+',000 Hz':freq+' Hz';
+  document.getElementById('bDesc').textContent=desc;
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+window.addEventListener('load',()=>setTimeout(()=>{
+  updateStageUI();
+  updateDamp();
+  updateBasilar();
+},80));
+window.addEventListener('resize',()=>{
+  drawStage(curStage);
+  updateDamp();
+  updateBasilar();
+});
+</script>
+</body>
+</html>
