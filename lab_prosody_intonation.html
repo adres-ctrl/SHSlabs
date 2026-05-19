@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Prosody &amp; Intonation</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Exo 2','Segoe UI',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
+  .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
+  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+  .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
+  .lab-sub{font-size:13px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
+  .section-tag{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .section-note{font-size:13px;color:#8eb4d4;margin-bottom:16px;line-height:1.55;}
+  hr.div{border:none;border-top:1px solid #162135;margin:20px 0;}
+  /* CONTROLS */
+  .controls{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+  .sel-wrap{flex:1;min-width:220px;}
+  select{width:100%;background:#0b1424;border:1px solid #162135;color:#dce7f5;
+    font-family:'Exo 2',sans-serif;font-size:13px;padding:9px 36px 9px 12px;
+    border-radius:7px;outline:none;cursor:pointer;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238eb4d4' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;}
+  select:focus{border-color:#4a9eff;}
+  .tog-btn{background:#0b1424;border:1px solid #162135;color:#8eb4d4;
+    font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;
+    padding:9px 16px;border-radius:7px;cursor:pointer;transition:all 0.15s;
+    white-space:nowrap;letter-spacing:0.3px;}
+  .tog-btn:hover{border-color:#FFC904;color:#FFC904;}
+  .tog-btn.lit{border-color:#FFC904;color:#FFC904;background:rgba(255,201,4,0.08);}
+  .tog-btn.hidden{display:none;}
+  /* SPECTROGRAM */
+  .spec-outer{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;margin-bottom:14px;}
+  .spec-topbar{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+    color:#8eb4d4;padding:8px 12px 6px;border-bottom:1px solid #0e192e;
+    display:flex;justify-content:space-between;align-items:center;}
+  .spec-topbar .freq-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5a7a9a;text-transform:none;letter-spacing:0;}
+  canvas{display:block;width:100%;}
+  .word-labels{display:flex;border-top:1px solid #0e192e;overflow:hidden;min-height:26px;}
+  .wlbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8eb4d4;
+    text-align:center;padding:5px 2px;border-right:1px solid #0e192e;flex-shrink:0;overflow:hidden;}
+  .wlbl.stressed{color:#FFC904;font-weight:700;}
+  .wlbl.silence{color:#2a4a6a;font-style:italic;font-size:10px;}
+  /* INFO CARD */
+  .info-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:16px 18px;}
+  .info-ctag{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .info-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:10px;}
+  .info-desc{font-size:13px;color:#8eb4d4;line-height:1.65;margin-bottom:12px;}
+  .obs-list{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+  .obs-item{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#8eb4d4;line-height:1.5;}
+  .obs-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;
+    background:#060c18;border:1px solid #0e192e;border-radius:8px;align-items:center;}
+  .leg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:#8eb4d4;}
+  .leg-swatch{width:28px;height:4px;border-radius:2px;flex-shrink:0;}
+  .leg-vline{width:2px;height:14px;background:rgba(255,255,255,0.28);border-radius:1px;flex-shrink:0;}
+  .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:0.5px;}
+
+  /* ── PART 2: PROSODY DIMENSIONS ── */
+  .dim-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+  .dim-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:14px 14px 12px;}
+  .dim-card-title{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .dim-card-sub{font-size:11px;color:#5a7a9a;margin-bottom:10px;}
+  .dim-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-bottom:8px;transition:color 0.2s;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;cursor:pointer;}
+  .dim-f0  input[type=range]{background:linear-gradient(90deg,#0b1424,#4a9eff);}
+  .dim-amp input[type=range]{background:linear-gradient(90deg,#0b1424,#2dd4bf);}
+  .dim-dur input[type=range]{background:linear-gradient(90deg,#0b1424,#FFC904);}
+  .dim-f0  input[type=range]::-webkit-slider-thumb{background:#4a9eff;}
+  .dim-amp input[type=range]::-webkit-slider-thumb{background:#2dd4bf;}
+  .dim-dur input[type=range]::-webkit-slider-thumb{background:#FFC904;}
+  .vis-row{display:flex;gap:10px;margin-bottom:14px;}
+  .bar-vis{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;flex:1;}
+  .bar-vis-lbl{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:7px 12px 6px;border-bottom:1px solid #0e192e;}
+  canvas.bar-cv{display:block;width:100%;}
+  .combo-note{font-size:13px;color:#8eb4d4;line-height:1.6;padding:12px 14px;
+    background:#060c18;border:1px solid #0e192e;border-radius:8px;margin-bottom:14px;}
+  .combo-note strong{color:#FFC904;}
+  .combo-note em{color:#2dd4bf;}
+
+  /* ── PART 3: NOUN/VERB STRESS PAIRS ── */
+  .pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .pair-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:14px;cursor:pointer;transition:all 0.15s;user-select:none;}
+  .pair-card:hover{border-color:#4a9eff;}
+  .pair-card.active-n{border-color:#4a9eff;background:rgba(74,158,255,0.07);}
+  .pair-card.active-v{border-color:#2dd4bf;background:rgba(45,212,191,0.07);}
+  .pair-pos{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#5a7a9a;margin-bottom:4px;}
+  .pair-word{font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1.1;margin-bottom:2px;}
+  .pair-word .syl-stress{border-bottom:3px solid;}
+  .pair-word .syl-n{color:#4a9eff;border-color:#4a9eff;}
+  .pair-word .syl-v{color:#2dd4bf;border-color:#2dd4bf;}
+  .pair-word .syl-unstress{color:#3a5a7a;}
+  .pair-ex{font-size:11px;color:#5a7a9a;font-style:italic;margin-top:5px;}
+  .pair-vis{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;margin-bottom:14px;}
+  .pair-vis-top{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:7px 12px 6px;border-bottom:1px solid #0e192e;display:flex;justify-content:space-between;}
+  canvas.pair-cv{display:block;width:100%;}
+  .pair-nav{display:flex;gap:8px;justify-content:center;margin-bottom:14px;}
+  .pair-nav-btn{background:#0b1424;border:1px solid #162135;color:#8eb4d4;
+    font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;
+    padding:7px 20px;border-radius:7px;cursor:pointer;transition:all 0.15s;}
+  .pair-nav-btn:hover{border-color:#4a9eff;color:#4a9eff;}
+  .pair-info-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:14px 16px;}
+  .pair-info-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;}
+  .pair-info-desc{font-size:13px;color:#8eb4d4;line-height:1.65;}
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Prosody &amp; Intonation Lab</div>
+    <div class="lab-sub">Suprasegmental Variation</div>
+  </div>
+</div>
+
+<div class="section-tag">Part 1</div>
+<div class="section-title">The Three Dimensions of Prosody</div>
+<div class="section-note">Use each slider independently to see how that single correlate changes the spectrogram. The vowel displayed is a neutral /ɑ/. <span style="color:#FFC904;">Yellow line</span> = F₀ contour. Bright horizontal bands = formant energy. Width of the vowel region = duration.</div>
+
+<div class="dim-grid">
+  <div class="dim-card dim-f0">
+    <div class="dim-card-title" style="color:#4a9eff;">Fundamental Frequency</div>
+    <div class="dim-card-sub">= Pitch &nbsp;·&nbsp; measured in Hz</div>
+    <div class="dim-val" id="f0Val" style="color:#4a9eff;">120 Hz</div>
+    <input type="range" id="f0Sld" min="80" max="280" value="120" oninput="drawSpectrogram()">
+  </div>
+  <div class="dim-card dim-amp">
+    <div class="dim-card-title" style="color:#2dd4bf;">Amplitude</div>
+    <div class="dim-card-sub">= Loudness &nbsp;·&nbsp; measured in dB</div>
+    <div class="dim-val" id="ampVal" style="color:#2dd4bf;">65 dB</div>
+    <input type="range" id="ampSld" min="40" max="90" value="65" oninput="drawSpectrogram()">
+  </div>
+  <div class="dim-card dim-dur">
+    <div class="dim-card-title" style="color:#FFC904;">Duration</div>
+    <div class="dim-card-sub">= Length &nbsp;·&nbsp; measured in ms</div>
+    <div class="dim-val" id="durVal" style="color:#FFC904;">180 ms</div>
+    <input type="range" id="durSld" min="50" max="500" value="180" oninput="drawSpectrogram()">
+  </div>
+</div>
+
+<div class="spec-outer">
+  <div class="spec-topbar">
+    <span>Wideband Spectrogram — /ɑ/</span>
+    <span class="freq-tag">0 Hz ─── 5,000 Hz</span>
+  </div>
+  <canvas id="dimSpecCv"></canvas>
+</div>
+
+<div class="combo-note" id="comboNote">
+  Adjust all three sliders and observe how stress builds. <strong>Stress requires all three correlates to increase.</strong> Changing only one creates an unnatural or ambiguous percept.
+</div>
+
+<div class="info-card">
+  <div class="info-ctag">Key Concept</div>
+  <div class="info-title">What actually changes acoustically?</div>
+  <div class="info-desc">When stress is added to a syllable, the <em>vowel nucleus</em> carries most of the change. Vowels are continuous and sonorant — they have a wide range for F₀ variation, a large dynamic range for amplitude, and can be lengthened substantially without losing identity. Consonants are also stressed, but their acoustic changes are much smaller because their <em>manner of production</em> limits how much each can vary.</div>
+  <div class="obs-list">
+    <div class="obs-item"><div class="obs-dot" style="background:#4a9eff;"></div><span>F₀ is controlled primarily by the cricothyroid muscle — tensing and elongating the vocal folds raises pitch.</span></div>
+    <div class="obs-item"><div class="obs-dot" style="background:#2dd4bf;"></div><span>Amplitude is controlled by subglottal air pressure — increased respiratory drive pushes the folds apart further, releasing more air per cycle.</span></div>
+    <div class="obs-item"><div class="obs-dot" style="background:#FFC904;"></div><span>Duration is controlled by respiratory pacing — slowing the airflow and extending the gesture lengthens the sound.</span></div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══ PART 2: NOUN/VERB STRESS PAIRS ═══════════════════════ -->
+<div class="section-tag">Part 2</div>
+<div class="section-title">Noun / Verb Stress Pairs</div>
+<div class="section-note">English has many word pairs spelled identically but differing only in which syllable carries primary stress. <span style="color:#4a9eff;font-weight:700;">First syllable stressed</span> = <span style="color:#4a9eff;font-weight:700;">noun</span>. <span style="color:#2dd4bf;font-weight:700;">Second syllable stressed</span> = <span style="color:#2dd4bf;font-weight:700;">verb</span>. Both stress patterns are shown simultaneously. Use ◀ ▶ to cycle through all pairs.</div>
+
+<div class="pair-nav">
+  <button class="pair-nav-btn" onclick="prevPair()">◀ Prev</button>
+  <button class="pair-nav-btn" id="pairCounter" style="cursor:default;pointer-events:none;min-width:80px;text-align:center;">1 / 8</button>
+  <button class="pair-nav-btn" onclick="nextPair()">Next ▶</button>
+</div>
+
+<div class="pair-grid">
+  <div class="pair-card active-n" id="nounCard">
+    <div class="pair-pos">📦 Noun</div>
+    <div class="pair-word" id="nounWord"></div>
+    <div class="pair-ex"  id="nounEx"></div>
+  </div>
+  <div class="pair-card active-v" id="verbCard">
+    <div class="pair-pos">⚡ Verb</div>
+    <div class="pair-word" id="verbWord"></div>
+    <div class="pair-ex"  id="verbEx"></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+  <div class="pair-vis">
+    <div class="pair-vis-top">
+      <span>Noun — Stress Pattern</span>
+      <span style="color:#4a9eff;font-size:11px;font-family:'IBM Plex Mono',monospace;">1st syllable</span>
+    </div>
+    <canvas class="pair-cv" id="nounCv" height="130"></canvas>
+  </div>
+  <div class="pair-vis">
+    <div class="pair-vis-top">
+      <span>Verb — Stress Pattern</span>
+      <span style="color:#2dd4bf;font-size:11px;font-family:'IBM Plex Mono',monospace;">2nd syllable</span>
+    </div>
+    <canvas class="pair-cv" id="verbCv" height="130"></canvas>
+  </div>
+</div>
+
+<div class="pair-info-card">
+  <div class="pair-info-title" id="pairInfoTitle"></div>
+  <div class="pair-info-desc"  id="pairInfoDesc"></div>
+</div>
+
+<div class="footer">© 2025 Adam Reres</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   SHARED UTILITIES
+══════════════════════════════════════════════ */
+const FMAX=5000;
+const NTBL=new Float32Array(4096);
+(()=>{for(let i=0;i<NTBL.length;i++){const x=Math.sin(i*127.1+0.9)*43758.5453;NTBL[i]=(x-Math.floor(x))*2-1;}})();
+function nz(x,y){return NTBL[((Math.abs(x*7+y*13))>>>0)%NTBL.length];}
+function gauss(x,c,bw){return Math.exp(-((x-c)*(x-c))/(2*bw*bw));}
+function eRGB(e){
+  if(e<=0.02)return[5,10,22];  if(e<0.12)return[7,20,48];
+  if(e<0.25)return[10,48,90];  if(e<0.40)return[14,88,130];
+  if(e<0.55)return[22,132,158];if(e<0.68)return[32,172,175];
+  if(e<0.80)return[45,212,191];if(e<0.90)return[170,222,110];
+  return[255,201,4];
+}
+
+/* ══════════════════════════════════════════════
+   PART 1 — LIVE SPECTROGRAM
+   Neutral vowel /ɑ/: F1≈750, F2≈1150, F3≈2500, F4≈3400
+══════════════════════════════════════════════ */
+const SPEC_H=220, SPEC_WIN=650;
+const VF1=750,VF2=1150,VF3=2500,VF4=3400;
+
+function drawSpectrogram(){
+  const f0hz=parseInt(document.getElementById('f0Sld').value);
+  const amp =parseInt(document.getElementById('ampSld').value);
+  const dur =parseInt(document.getElementById('durSld').value);
+
+  document.getElementById('f0Val').textContent =f0hz+' Hz';
+  document.getElementById('ampVal').textContent=amp+' dB';
+  document.getElementById('durVal').textContent=dur+' ms';
+
+  const ampN=(amp-40)/50; // 0–1
+
+  const cv =document.getElementById('dimSpecCv');
+  const dpr=window.devicePixelRatio||1;
+  const W  =cv.parentElement.offsetWidth||600;
+  cv.width =Math.round(W*dpr);
+  cv.height=Math.round(SPEC_H*dpr);
+  cv.style.height=SPEC_H+'px';
+  const c=cv.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+
+  // vowel region: centered, width proportional to duration
+  const minMarg=Math.round(W*0.11);
+  const vowelW=Math.min(Math.round((dur/SPEC_WIN)*W), W-minMarg*2);
+  const x0=Math.round((W-vowelW)/2);
+  const x1=x0+vowelW;
+
+  // render pixels
+  const imgData=c.createImageData(W,SPEC_H);
+  const px=imgData.data;
+  for(let col=0;col<W;col++){
+    const inV=col>=x0&&col<x1;
+    for(let row=0;row<SPEC_H;row++){
+      const freq=((SPEC_H-row)/SPEC_H)*FMAX;
+      const nc=nz(col,Math.round(freq/22));
+      let e=0;
+      if(inV){
+        // voicing bar (low-freq energy floor)
+        e+=0.48*gauss(freq,90,62);
+        // harmonics — clearly visible stripes, spacing = F0
+        // extend to ~3kHz so students see them interact with formants
+        for(let h=1;h<=Math.floor(3000/f0hz);h++){
+          const hf=f0hz*h;
+          const hAmp=0.32*Math.pow(0.82,h-1); // natural rolloff
+          e+=hAmp*gauss(freq,hf,f0hz*0.18);   // bandwidth proportional to F0
+        }
+        // formant bands scale with amplitude (fixed — do not move with F0)
+        e+=ampN*0.92*gauss(freq,VF1,130);
+        e+=ampN*0.70*gauss(freq,VF2,115);
+        e+=ampN*0.30*gauss(freq,VF3,158);
+        e+=ampN*0.15*gauss(freq,VF4,178);
+      } else {
+        e=0.005+Math.abs(nc)*0.13;
+      }
+      e=Math.max(0,Math.min(1,e+nc*0.030));
+      const i=(row*W+col)*4;
+      const[r,g,b]=eRGB(e);
+      px[i]=r;px[i+1]=g;px[i+2]=b;px[i+3]=255;
+    }
+  }
+  c.putImageData(imgData,0,0);
+
+  // harmonic tick marks — drawn over the spectrogram inside the vowel region
+  // small horizontal ticks on the right edge of the vowel + Hz labels
+  const maxH=Math.floor(3200/f0hz);
+  for(let h=1;h<=maxH;h++){
+    const hf=f0hz*h;
+    const hy=SPEC_H-(hf/FMAX)*SPEC_H;
+    const isF0=(h===1);
+    c.strokeStyle=isF0?'rgba(255,201,4,0.85)':'rgba(74,158,255,0.55)';
+    c.lineWidth=isF0?1.5:0.8;
+    // short tick on right edge of vowel
+    c.beginPath();c.moveTo(x1-2,hy);c.lineTo(x1+8,hy);c.stroke();
+    // label every other harmonic to avoid crowding
+    if(h%2===1||f0hz>=150){
+      c.fillStyle=isF0?'rgba(255,201,4,0.80)':'rgba(74,158,255,0.60)';
+      c.font=`${isF0?'bold ':''  }9px IBM Plex Mono,monospace`;
+      c.textAlign='left';
+      c.fillText(isF0?`H1 F₀`:`H${h}`,x1+11,hy+3);
+    }
+  }
+  // formant peak markers on left edge — show they don't move
+  [[VF1,'F1','#4a9eff'],[VF2,'F2','#2dd4bf'],[VF3,'F3','rgba(45,212,191,0.5)']].forEach(([f,lbl,col])=>{
+    const fy=SPEC_H-(f/FMAX)*SPEC_H;
+    c.strokeStyle=col;c.lineWidth=1;c.setLineDash([2,3]);
+    c.beginPath();c.moveTo(x0-8,fy);c.lineTo(x0+6,fy);c.stroke();
+    c.setLineDash([]);
+    c.fillStyle=col;c.font='9px IBM Plex Mono,monospace';c.textAlign='right';
+    c.fillText(lbl,x0-10,fy+3);
+  });
+
+  // freq grid
+  c.setLineDash([2,5]);c.lineWidth=1;
+  [1000,2000,3000,4000].forEach(f=>{
+    const y=SPEC_H-(f/FMAX)*SPEC_H;
+    c.strokeStyle='rgba(255,255,255,0.06)';
+    c.beginPath();c.moveTo(32,y);c.lineTo(W,y);c.stroke();
+    c.fillStyle='rgba(142,180,212,0.45)';
+    c.font='10px IBM Plex Mono,monospace';c.textAlign='left';
+    c.fillText(f>=1000?`${f/1000}k`:`${f}`,3,y-2);
+  });
+  c.setLineDash([]);
+
+  // vowel boundary dashes
+  c.strokeStyle='rgba(255,255,255,0.22)';c.lineWidth=1;c.setLineDash([3,4]);
+  [x0,x1].forEach(x=>{c.beginPath();c.moveTo(x,0);c.lineTo(x,SPEC_H);c.stroke();});
+  c.setLineDash([]);
+
+  // duration bracket
+  c.strokeStyle='rgba(255,201,4,0.55)';c.lineWidth=1.5;
+  const by=SPEC_H-9;
+  c.beginPath();c.moveTo(x0,by);c.lineTo(x1,by);c.stroke();
+  c.beginPath();c.moveTo(x0,by-5);c.lineTo(x0,by+3);c.stroke();
+  c.beginPath();c.moveTo(x1,by-5);c.lineTo(x1,by+3);c.stroke();
+  c.fillStyle='rgba(255,201,4,0.65)';c.font='10px IBM Plex Mono,monospace';c.textAlign='center';
+  c.fillText(dur+'ms',(x0+x1)/2,by-11);
+
+  // F0 line (inside vowel only)
+  const f0y=SPEC_H-(f0hz/FMAX)*SPEC_H;
+  c.shadowColor='rgba(255,201,4,0.55)';c.shadowBlur=5;
+  c.strokeStyle='rgba(255,201,4,0.92)';c.lineWidth=2.2;
+  c.beginPath();c.moveTo(x0,f0y);c.lineTo(x1,f0y);c.stroke();
+  c.shadowBlur=0;
+  if(x1+60<W){
+    c.fillStyle='#FFC904';c.font='bold 10px IBM Plex Mono,monospace';c.textAlign='left';
+    c.fillText(`F₀ ${f0hz}Hz`,x1+5,f0y+4);
+  }
+
+  // silence labels
+  c.fillStyle='rgba(90,122,154,0.5)';c.font='11px IBM Plex Mono,monospace';c.textAlign='center';
+  if(x0>36) c.fillText('silence',x0/2,SPEC_H/2);
+  if(W-x1>36) c.fillText('silence',(x1+W)/2,SPEC_H/2);
+
+  // /ɑ/ label
+  c.fillStyle='rgba(220,231,245,0.60)';c.font='bold 15px Exo 2,sans-serif';c.textAlign='center';
+  if(vowelW>32) c.fillText('/ɑ/',(x0+x1)/2,22);
+
+  // combo note
+  const fN=(f0hz-80)/200,aN=(amp-40)/50,dN=(dur-50)/450;
+  const stress=(fN+aN+dN)/3;
+  // detect which correlate is dominant
+  const dominant = (fN>aN&&fN>dN)?'f0':(aN>fN&&aN>dN)?'amp':'dur';
+  let note='';
+  if(stress<0.25)
+    note='<strong>Low correlates.</strong> All three values are low — the vowel looks narrow, dim, and the F₀ line sits near the bottom. Notice the closely-spaced harmonic lines (H1, H2...) at low F₀.';
+  else if(stress<0.45){
+    if(dominant==='f0')
+      note='<strong>F₀ raised.</strong> Watch the harmonic tick marks on the right — they spread apart as F₀ increases. The formant labels on the left (F1, F2, F3) <em>do not move</em>. The harmonics shift; the resonances stay fixed.';
+    else
+      note='<strong>Moderate values.</strong> Some energy visible. Changing one correlate alone is not enough to signal clear stress.';
+  } else if(stress<0.68){
+    if(dominant==='f0')
+      note='<strong>F₀ raised.</strong> Harmonics are spreading. At higher F₀ fewer harmonics fall within each formant region — which is why very high-pitched voices can sound different even on the same vowel. Formant peaks (F1, F2, F3) remain fixed.';
+    else
+      note='<strong>Elevated correlates.</strong> Bands brightening and vowel region widening. A listener would perceive emphasis on this syllable.';
+  } else{
+    if(dominant==='f0')
+      note='<strong>High F₀.</strong> Harmonic spacing is wide — count the gaps between H1, H2, H3. The formant bands (F1, F2) stay in the same place regardless. <em>Source and filter are independent.</em>';
+    else
+      note='<strong style="color:#FFC904;">Strong stress.</strong> Wide vowel region, bright formant bands, high F₀ line. This is what a clearly stressed syllable looks like in a spectrogram. <em>All three correlates are required together.</em>';
+  }
+  document.getElementById('comboNote').innerHTML=note;
+}
+
+/* ══════════════════════════════════════════════
+   PART 2 — NOUN/VERB STRESS PAIRS
+══════════════════════════════════════════════ */
+const PAIRS=[
+  {word:'record', syls:['re','cord'],
+   noun:{stress:0,ex:'"Play the record."'},verb:{stress:1,ex:'"Please record this."'},
+   desc:'As a noun: "RE-cord" — a physical or digital recording. As a verb: "re-CORD" — the act of capturing sound or video. Same phonemes, entirely different stress placement.'},
+  {word:'permit', syls:['per','mit'],
+   noun:{stress:0,ex:'"Show your permit."'},verb:{stress:1,ex:'"I permit that."'},
+   desc:'"PER-mit" (noun) is a license or authorization. "per-MIT" (verb) means to allow or grant permission. Distinguished entirely by which syllable carries higher F₀, amplitude, and duration.'},
+  {word:'present',syls:['pre','sent'],
+   noun:{stress:0,ex:'"Here is your present."'},verb:{stress:1,ex:'"I will present now."'},
+   desc:'"PRE-sent" (noun) is a gift or the current moment. "pre-SENT" (verb) means to introduce or display formally. The unstressed syllable often reduces toward a schwa [ə].'},
+  {word:'protest', syls:['pro','test'],
+   noun:{stress:0,ex:'"Join the protest."'},verb:{stress:1,ex:'"They will protest."'},
+   desc:'"PRO-test" (noun) is a public demonstration or objection. "pro-TEST" (verb) is the act of objecting or demonstrating. The stressed syllable has a full vowel; the unstressed one reduces.'},
+  {word:'object',  syls:['ob','ject'],
+   noun:{stress:0,ex:'"Pass the object."'},verb:{stress:1,ex:'"I object!"'},
+   desc:'"OB-ject" (noun) is a physical thing or target of attention. "ob-JECT" (verb) means to express disagreement — very common in legal contexts.'},
+  {word:'conflict',syls:['con','flict'],
+   noun:{stress:0,ex:'"There is a conflict."'},verb:{stress:1,ex:'"They conflict often."'},
+   desc:'"CON-flict" (noun) is a disagreement or struggle. "con-FLICT" (verb) means to be incompatible or in opposition. As with all these pairs, the unstressed syllable shortens and reduces.'},
+  {word:'increase',syls:['in','crease'],
+   noun:{stress:0,ex:'"A large increase."'},verb:{stress:1,ex:'"Prices increase."'},
+   desc:'"IN-crease" (noun) is a rise or gain. "in-CREASE" (verb) is the act of growing or making larger. The stressed syllable carries a full vowel; the unstressed one reduces.'},
+  {word:'export',  syls:['ex','port'],
+   noun:{stress:0,ex:'"Our main export."'},verb:{stress:1,ex:'"We export goods."'},
+   desc:'"EX-port" (noun) is a product sold abroad. "ex-PORT" (verb) is the act of sending goods to another country. Common in economics and trade contexts.'},
+];
+
+let curPair=0;
+
+function renderPair(){
+  const p=PAIRS[curPair];
+  document.getElementById('pairCounter').textContent=`${curPair+1} / ${PAIRS.length}`;
+  document.getElementById('nounWord').innerHTML=sylHTML(p.syls,p.noun.stress,'n');
+  document.getElementById('nounEx').textContent=p.noun.ex;
+  document.getElementById('verbWord').innerHTML=sylHTML(p.syls,p.verb.stress,'v');
+  document.getElementById('verbEx').textContent=p.verb.ex;
+  document.getElementById('pairInfoTitle').textContent=`"${p.word.charAt(0).toUpperCase()+p.word.slice(1)}" — Noun vs. Verb`;
+  document.getElementById('pairInfoDesc').textContent=p.desc;
+  drawPairVis('nounCv',p,true);
+  drawPairVis('verbCv',p,false);
+}
+
+function sylHTML(syls,stressIdx,type){
+  return syls.map((s,i)=>
+    i===stressIdx
+      ?`<span class="syl-stress syl-${type}">${s.toUpperCase()}</span>`
+      :`<span class="syl-unstress">${s}</span>`
+  ).join('·');
+}
+
+function drawPairVis(cvId,p,isNoun){
+  const cv=document.getElementById(cvId);
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.parentElement.offsetWidth||300;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(130*dpr);
+  cv.style.height='130px';
+  const c=cv.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,130);
+
+  const stressIdx=isNoun?p.noun.stress:p.verb.stress;
+  const color=isNoun?'#4a9eff':'#2dd4bf';
+  const n=p.syls.length;
+  const padX=24,gapX=14;
+  const barW=(W-padX*2-(n-1)*gapX)/n;
+  const maxH=80,baseY=102;
+
+  p.syls.forEach((syl,i)=>{
+    const stressed=i===stressIdx;
+    const ampV=stressed?0.88:0.24;
+    const durV=stressed?0.80:0.26;
+    const x=padX+i*(barW+gapX);
+
+    // duration bar (behind)
+    const dH=Math.round(durV*maxH);
+    c.fillStyle=stressed?'rgba(255,201,4,0.14)':'rgba(20,40,70,0.45)';
+    c.beginPath();c.roundRect(x,baseY-dH,barW,dH,4);c.fill();
+
+    // amplitude bar
+    const aH=Math.round(ampV*maxH);
+    const grad=c.createLinearGradient(0,baseY-aH,0,baseY);
+    grad.addColorStop(0,stressed?color:'#162030');
+    grad.addColorStop(1,stressed?color+'44':'#0c1520');
+    c.fillStyle=grad;
+    c.beginPath();c.roundRect(x+5,baseY-aH,barW-10,aH,4);c.fill();
+
+    // syllable label
+    c.fillStyle=stressed?color:'#3a5a7a';
+    c.font=`${stressed?'bold ':''}13px Exo 2,sans-serif`;
+    c.textAlign='center';
+    c.fillText(stressed?syl.toUpperCase():syl,x+barW/2,baseY+16);
+
+    // stress marker
+    if(stressed){
+      c.fillStyle=color;c.font='11px sans-serif';
+      c.fillText('▲',x+barW/2,baseY-aH-5);
+    }
+  });
+
+  // axis
+  c.strokeStyle='rgba(255,255,255,0.07)';c.lineWidth=1;
+  c.beginPath();c.moveTo(padX-4,baseY);c.lineTo(W-padX+4,baseY);c.stroke();
+
+  // legend
+  c.fillStyle='rgba(255,201,4,0.55)';c.font='10px IBM Plex Mono,monospace';c.textAlign='right';
+  c.fillText('■ dur',W-8,14);
+  c.fillStyle=color;
+  c.fillText('■ amp',W-8,26);
+}
+
+function nextPair(){curPair=(curPair+1)%PAIRS.length;renderPair();}
+function prevPair(){curPair=(curPair-1+PAIRS.length)%PAIRS.length;renderPair();}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+window.addEventListener('load',()=>setTimeout(()=>{drawSpectrogram();renderPair();},80));
+window.addEventListener('resize',()=>{drawSpectrogram();renderPair();});
+</script>
+</body>
+</html>
