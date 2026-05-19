@@ -462,7 +462,7 @@ function drawHairCells(c,W,col){
       c.beginPath(); c.arc(sx,hy-height,2,0,Math.PI*2); c.fill();
     }
     // K+ ion arrows
-    c.fillStyle='rgba(255,201,4,0.7)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+    c.fillStyle='rgba(255,201,4,0.7)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='center';
     c.fillText('K⁺→',hx+hcW/2,hy+16);
     // nerve fiber below
     c.strokeStyle='rgba(255,201,4,0.5)'; c.lineWidth=1.5;
@@ -598,7 +598,7 @@ function drawDampCanvas(cvId,type,dist){
   c.beginPath(); c.moveTo(0,mid); c.lineTo(W,mid); c.stroke();
 
   // labels
-  c.fillStyle='rgba(255,255,255,0.25)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='left';
+  c.fillStyle='rgba(255,255,255,0.25)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='left';
   c.fillText('Source',2,106);
   c.textAlign='right';
   c.fillText('Far',W-2,106);
@@ -680,22 +680,22 @@ function drawUnrolled(c,W,H,pos,freq){
     const x=padL+p*bW;
     c.strokeStyle='rgba(255,255,255,0.35)'; c.lineWidth=1;
     c.beginPath(); c.moveTo(x,memY-14); c.lineTo(x,memY+14); c.stroke();
-    c.fillStyle='rgba(220,231,245,0.55)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+    c.fillStyle='rgba(220,231,245,0.55)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='center';
     c.fillText(lbl,x,memY+26);
   });
 
   // end labels
-  c.fillStyle='rgba(74,158,255,0.8)'; c.font='bold 10px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillStyle='rgba(74,158,255,0.8)'; c.font='bold 13px IBM Plex Mono,monospace'; c.textAlign='center';
   c.fillText('BASE',padL,14); c.fillText('High Freq',padL,26);
   c.fillStyle='rgba(255,68,68,0.8)';
   c.fillText('APEX',padL+bW,14); c.fillText('Low Freq',padL+bW,26);
 
   // Hz label row
-  c.fillStyle='rgba(220,231,245,0.3)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='left';
+  c.fillStyle='rgba(220,231,245,0.3)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='left';
   c.fillText('Hz →',padL,memY+26+14);
 
   // stiffness labels
-  c.fillStyle='rgba(74,158,255,0.5)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillStyle='rgba(74,158,255,0.5)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='center';
   c.fillText('Stiff & Narrow',padL+30,memY-18);
   c.fillStyle='rgba(255,68,68,0.5)';
   c.fillText('Wide & Flexible',padL+bW-44,memY-18);
@@ -711,7 +711,7 @@ function drawUnrolled(c,W,H,pos,freq){
   c.fillStyle=color;
   c.beginPath(); c.arc(markerX,memY,8,0,Math.PI*2); c.fill();
   // freq label above peak
-  c.fillStyle=color; c.font='bold 11px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillStyle=color; c.font='bold 13px IBM Plex Mono,monospace'; c.textAlign='center';
   const fStr=freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+'k Hz':freq+' Hz';
   c.fillText(fStr,markerX,memY-40);
 }
@@ -759,7 +759,7 @@ function drawCoiled(c,W,H,pos,freq){
   c.beginPath(); c.arc(px,py,8,0,Math.PI*2); c.stroke();
 
   // freq label near marker
-  c.fillStyle=color; c.font='bold 11px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillStyle=color; c.font='bold 13px IBM Plex Mono,monospace'; c.textAlign='center';
   const fStr=freq>=1000?(freq/1000).toFixed(freq%1000?1:0)+'k Hz':freq+' Hz';
   const labelR=r+(r>maxR*0.6?18:-18);
   c.fillText(fStr, cx+labelR*Math.cos(ang), cy+labelR*Math.sin(ang));
@@ -767,7 +767,7 @@ function drawCoiled(c,W,H,pos,freq){
   // oval window label (base)
   const baseAng=-Math.PI/2;
   const bx=cx+maxR*Math.cos(baseAng), by=cy+maxR*Math.sin(baseAng);
-  c.fillStyle='rgba(74,158,255,0.7)'; c.font='9px IBM Plex Mono,monospace'; c.textAlign='center';
+  c.fillStyle='rgba(74,158,255,0.7)'; c.font='None12px IBM Plex Mono,monospace'; c.textAlign='center';
   c.fillText('Base',bx,by-16); c.fillText('(Oval Win.)',bx,by-6);
 
   // apex label

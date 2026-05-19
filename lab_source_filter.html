@@ -10,11 +10,11 @@
   body{font-family:'Exo 2','Segoe UI',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px;}
 
   .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
-  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:12px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
-  .lab-title{font-size:15px;font-weight:700;color:#dce7f5;}
-  .lab-sub{font-size:11px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
+  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+  .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
+  .lab-sub{font-size:13px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
 
-  .section-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .section-tag{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
   .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
   .section-note{font-size:13px;color:#8eb4d4;margin-bottom:14px;line-height:1.55;}
   hr.div{border:none;border-top:1px solid #162135;margin:22px 0;}
@@ -24,7 +24,7 @@
   @media(max-width:650px){.two-col{grid-template-columns:1fr;}}
 
   .vis-wrap{background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;}
-  .vis-lbl{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:8px 12px 5px;border-bottom:1px solid #0e192e;}
+  .vis-lbl{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8eb4d4;padding:8px 12px 5px;border-bottom:1px solid #0e192e;}
   canvas{display:block;width:100%;}
 
   /* Sliders */
@@ -32,9 +32,9 @@
   .slider-top{display:flex;justify-content:space-between;align-items:baseline;}
   .slider-name{font-size:13px;font-weight:700;color:#dce7f5;}
   .slider-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;}
-  .slider-hint{font-size:11px;color:#8eb4d4;}
+  .slider-hint{font-size:13px;color:#8eb4d4;}
   .slider-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
-  .slider-ends{font-size:11px;color:#8eb4d4;white-space:nowrap;}
+  .slider-ends{font-size:13px;color:#8eb4d4;white-space:nowrap;}
   input[type=range]{-webkit-appearance:none;flex:1;height:5px;background:#162135;border-radius:3px;outline:none;}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid #000;}
   .gold-thumb::-webkit-slider-thumb{background:#FFC904;box-shadow:0 0 6px rgba(255,201,4,0.4);}
@@ -45,19 +45,19 @@
   /* Chips */
   .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
   .chip{flex:1;min-width:90px;text-align:center;background:#060c18;border:1px solid #162135;border-radius:8px;padding:9px 10px;}
-  .chip .cl{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#8eb4d4;margin-bottom:3px;}
+  .chip .cl{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#8eb4d4;margin-bottom:3px;}
   .chip .cv{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;transition:color .25s;}
 
   /* Signal flow */
   .flow-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:6px;align-items:center;margin-bottom:14px;}
   .flow-arrow{color:#8eb4d4;font-size:20px;text-align:center;}
-  .flow-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#FFC904;text-align:center;padding:4px 0 6px;}
+  .flow-lbl{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#FFC904;text-align:center;padding:4px 0 6px;}
 
   /* Desc */
   .desc-box{font-size:13px;color:#8eb4d4;line-height:1.6;padding:10px 12px;background:#060c18;border:1px solid #162135;border-radius:7px;min-height:40px;}
 
   /* Footer */
-  .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:0.5px;}
+  .footer{text-align:center;padding:14px 0 2px;font-size:13px;color:#5a7a9a;letter-spacing:0.5px;}
 </style>
 </head>
 <body>
@@ -329,7 +329,7 @@ function drawWaveInputs(fA, fB, fC) {
   drawWave(fB,'rgba(74,158,255,0.9)');   // blue
   if(waveCActive && fC) drawWave(fC,'rgba(167,139,250,0.9)'); // purple
 
-  ctx.font='10px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.font='None13px IBM Plex Mono'; ctx.textAlign='left';
   ctx.fillStyle='rgba(74,222,128,0.5)'; ctx.fillText(`A: ${fA}×`, 8, 14);
   ctx.fillStyle='rgba(74,158,255,0.5)'; ctx.fillText(`B: ${fB}×`, 52, 14);
   if(waveCActive && fC){ ctx.fillStyle='rgba(167,139,250,0.5)'; ctx.fillText(`C: ${fC}×`, 96, 14); }
@@ -362,7 +362,7 @@ function drawWaveSum(fA, fB, fC) {
   const label = waveCActive && fC
     ? `Complex wave: A(${fA}×) + B(${fB}×) + C(${fC}×)`
     : `Complex wave: A(${fA}×) + B(${fB}×)`;
-  ctx.fillStyle='rgba(255,96,96,0.5)'; ctx.font='10px IBM Plex Mono'; ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,96,96,0.5)'; ctx.font='None13px IBM Plex Mono'; ctx.textAlign='left';
   ctx.fillText(label, 8, 14);
 }
 
@@ -424,12 +424,12 @@ function drawSpectrum(canvasId, f0, f1Amp, f2Amp, title, col1, col2, showLabels,
     const h1=Math.round(f1hz/f0), h2=Math.round(f2hz/f0);
     const x1=padL+(Math.min(nH,Math.max(1,h1))-0.5)*barGap;
     const x2=padL+(Math.min(nH,Math.max(1,h2))-0.5)*barGap;
-    ctx.font='bold 7px Exo 2'; ctx.textAlign='center';
+    ctx.font='bold 10px Exo 2'; ctx.textAlign='center';
     if(h1>=1&&h1<=nH){ ctx.fillStyle='rgba(74,158,255,0.5)'; ctx.fillText('Pharynx', x1, padT+8); }
     if(h2>=1&&h2<=nH){ ctx.fillStyle='rgba(45,212,191,0.5)'; ctx.fillText('Oral', x2, padT+8); }
   }
 
-  ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px Exo 2'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='None11px Exo 2'; ctx.textAlign='center';
   ctx.fillText(title, W/2, H-3);
 }
 
@@ -589,10 +589,10 @@ function drawScatter() {
   }
 
   // Axis titles
-  ctx.fillStyle='rgba(45,212,191,0.55)'; ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(45,212,191,0.55)'; ctx.font='bold 12px Exo 2'; ctx.textAlign='center';
   ctx.fillText('F2 — ORAL CAVITY  (high F2 = front tongue / small oral cavity)', W/2, padT-8);
   ctx.save(); ctx.translate(12,H/2); ctx.rotate(-Math.PI/2);
-  ctx.fillStyle='rgba(74,158,255,0.55)'; ctx.font='bold 9px Exo 2'; ctx.textAlign='center';
+  ctx.fillStyle='rgba(74,158,255,0.55)'; ctx.font='bold 12px Exo 2'; ctx.textAlign='center';
   ctx.fillText('F1 — PHARYNGEAL CAVITY  (high F1 = low tongue / small pharynx)', 0, 0);
   ctx.restore();
 
@@ -614,7 +614,7 @@ function drawScatter() {
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(v.ipa,x,y);
     if(isSel){
-      ctx.font='9px IBM Plex Sans'; ctx.fillStyle='rgba(255,201,4,0.6)';
+      ctx.font='None12px IBM Plex Sans'; ctx.fillStyle='rgba(255,201,4,0.6)';
       ctx.fillText(v.word,x,y+20);
     }
   });

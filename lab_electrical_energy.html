@@ -29,13 +29,13 @@
   .nav-btn{background:#0b1424;border:1px solid #162135;color:#8eb4d4;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:7px;cursor:pointer;transition:all 0.15s;}
   .nav-btn:hover{border-color:#FFC904;color:#FFC904;}
   .nav-btn.lit{border-color:#FFC904;color:#FFC904;background:rgba(255,201,4,0.08);}
-  .hint{font-size:11px;color:#5a7a9a;font-style:italic;margin-bottom:12px;}
+  .hint{font-size:13px;color:#5a7a9a;font-style:italic;margin-bottom:12px;}
 
   /* ── PART 1 LOBE EXPLORER ── */
   #brainWrap{position:relative;display:block;margin-bottom:14px;background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;cursor:crosshair;}
   #brainCanvas{display:block;width:100%;}
   .lobe-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-  .lobe-chip{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid;cursor:pointer;transition:all 0.15s;font-weight:600;}
+  .lobe-chip{display:flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:20px;border:1px solid;cursor:pointer;transition:all 0.15s;font-weight:600;}
 
   /* ── PART 2 HOMUNCULUS ── */
   .hom-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
@@ -51,13 +51,13 @@
   .cn-num{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;min-width:28px;}
   .cn-name-wrap{flex:1;}
   .cn-name{font-size:13px;font-weight:600;color:#dce7f5;}
-  .cn-fn{font-size:11px;color:#5a7a9a;margin-top:1px;}
-  .cn-speech-tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,201,4,0.15);color:#FFC904;border:1px solid rgba(255,201,4,0.3);white-space:nowrap;}
-  .cn-mod{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap;}
+  .cn-fn{font-size:13px;color:#5a7a9a;margin-top:1px;}
+  .cn-speech-tag{font-size:12px;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,201,4,0.15);color:#FFC904;border:1px solid rgba(255,201,4,0.3);white-space:nowrap;}
+  .cn-mod{font-size:12px;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap;}
   .mod-s{background:rgba(74,158,255,0.15);color:#4a9eff;border:1px solid rgba(74,158,255,0.3);}
   .mod-m{background:rgba(45,212,191,0.15);color:#2dd4bf;border:1px solid rgba(45,212,191,0.3);}
   .mod-b{background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.3);}
-  .cn-detail{display:none;font-size:12px;color:#8eb4d4;padding:8px 0 2px;line-height:1.6;border-top:1px solid #162135;margin-top:8px;}
+  .cn-detail{display:none;font-size:13px;color:#8eb4d4;padding:8px 0 2px;line-height:1.6;border-top:1px solid #162135;margin-top:8px;}
   .cn-row.open .cn-detail{display:block;}
 
   /* ── PART 4 SPEECH CHAIN ── */
@@ -66,8 +66,8 @@
   .chain-node.active{border-color:#FFC904;background:rgba(255,201,4,0.08);}
   .chain-node.broken{border-color:#ff4444;background:rgba(255,68,68,0.1);}
   .chain-arrow{display:flex;align-items:center;padding:0 4px;color:#3a5a7a;font-size:18px;flex-shrink:0;}
-  .chain-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#5a7a9a;margin-bottom:4px;}
-  .chain-name{font-size:12px;font-weight:700;color:#dce7f5;line-height:1.3;}
+  .chain-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#5a7a9a;margin-bottom:4px;}
+  .chain-name{font-size:13px;font-weight:700;color:#dce7f5;line-height:1.3;}
   .chain-node.active .chain-label{color:#FFC904;}
   .chain-node.active .chain-name{color:#fff;}
   .chain-node.broken .chain-name{color:#ff4444;}
@@ -76,7 +76,7 @@
   .disorder-btn:hover{border-color:#8eb4d4;}
   .disorder-btn.active{border-color:#FFC904;background:rgba(255,201,4,0.07);}
   .dis-name{font-size:13px;font-weight:700;color:#dce7f5;margin-bottom:3px;}
-  .dis-sub{font-size:11px;color:#5a7a9a;}
+  .dis-sub{font-size:13px;color:#5a7a9a;}
   .disorder-btn.active .dis-name{color:#FFC904;}
 
   .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:0.5px;}
@@ -102,7 +102,7 @@
 <div class="vis-outer">
   <div class="vis-topbar">
     <span id="brainTopLabel">Click a lobe to explore</span>
-    <span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#5a7a9a;">Lateral view — left hemisphere</span>
+    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;color:#5a7a9a;">Lateral view — left hemisphere</span>
   </div>
   <div id="brainWrap"><canvas id="brainCanvas"></canvas></div>
 </div>
@@ -124,7 +124,7 @@
 <div class="vis-outer">
   <div class="vis-topbar">
     <span>Motor &amp; Sensory Cortex — Lateral View</span>
-    <span style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:#5a7a9a;" id="homPartLabel">—</span>
+    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;color:#5a7a9a;" id="homPartLabel">—</span>
   </div>
   <canvas id="homCanvas"></canvas>
 </div>
@@ -133,7 +133,7 @@
   <input type="range" id="homSld" min="0" max="13" step="1" value="0"
     style="width:100%;background:linear-gradient(90deg,#4a9eff,#FFC904);"
     oninput="onHomSlide()">
-  <div style="display:flex;justify-content:space-between;font-size:10px;color:#5a7a9a;font-family:'IBM Plex Mono',monospace;margin-top:3px;">
+  <div style="display:flex;justify-content:space-between;font-size:13px;color:#5a7a9a;font-family:'IBM Plex Mono',monospace;margin-top:3px;">
     <span>Medial (Toes)</span><span>Lateral (Larynx)</span>
   </div>
 </div>
@@ -266,16 +266,16 @@ function lobeFromPixel(r,g,b){
 function drawBrain(highlight){
   const cv = document.getElementById('brainCanvas');
   const dpr = window.devicePixelRatio||1;
-  const W = cv.parentElement.offsetWidth||600;
-  cv.width = Math.round(W*dpr); cv.height = Math.round(W*(546/765)*dpr);
-  cv.style.height = Math.round(W*(546/765))+'px';
+  const W = Math.round((cv.parentElement.offsetWidth||600) * 0.75);
+  const H = Math.round(W*(546/765));
+  cv.width  = Math.round(W*dpr);
+  cv.height = Math.round(H*dpr);
+  cv.style.width  = W+'px';
+  cv.style.height = H+'px';
   const c = cv.getContext('2d');
   c.setTransform(dpr,0,0,dpr,0,0);
-  c.clearRect(0,0,W,W*(546/765));
+  c.clearRect(0,0,W,H);
   if(!brainLoaded) return;
-
-  const H = W*(546/765);
-  c.drawImage(brainImg,0,0,W,H);
 
   if(highlight){
     const lobe = LOBES.find(l=>l.id===highlight);
@@ -467,7 +467,7 @@ function sCoords(bp, W, H){ return { x: (bp.mx + SEN_DX) * W, y: (bp.my + SEN_DY
 
 // Draw text with tinted background box for readability over brain image
 function labelBox(c, txt, x, y, col, bold, align){
-  const fSize = bold ? 12 : 10;
+  const fSize = bold ? 15 : 13;
   c.font = `${bold?'bold ':''  }${fSize}px Exo 2,sans-serif`;
   const tw = c.measureText(txt).width;
   const pad = 5;
@@ -498,10 +498,11 @@ function drawHomunculus(){
   if(!brainLoaded) return;
   const cv  = document.getElementById('homCanvas');
   const dpr = window.devicePixelRatio||1;
-  const W   = cv.parentElement.offsetWidth||600;
+  const W   = Math.round((cv.parentElement.offsetWidth||600) * 0.75);
   const H   = Math.round(W * (546/765));
   cv.width  = Math.round(W*dpr);
   cv.height = Math.round(H*dpr);
+  cv.style.width  = W+'px';
   cv.style.height = H+'px';
   const c   = cv.getContext('2d');
   c.setTransform(dpr,0,0,dpr,0,0);
@@ -728,7 +729,7 @@ function renderChain(broken){
     }
     const div=document.createElement('div');
     div.className='chain-node'+(broken&&broken.includes(node.id)?' broken':' active');
-    div.innerHTML=`<div class="chain-label">${node.label}</div><div class="chain-name">${node.name}</div><div style="font-size:10px;color:#5a7a9a;margin-top:3px;">${node.short}</div>`;
+    div.innerHTML=`<div class="chain-label">${node.label}</div><div class="chain-name">${node.name}</div><div style="font-size:12px;color:#5a7a9a;margin-top:3px;">${node.short}</div>`;
     row.appendChild(div);
   });
 }

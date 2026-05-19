@@ -326,7 +326,7 @@ function drawSpectrogram(){
     c.strokeStyle=col;c.lineWidth=1;c.setLineDash([2,3]);
     c.beginPath();c.moveTo(x0-8,fy);c.lineTo(x0+6,fy);c.stroke();
     c.setLineDash([]);
-    c.fillStyle=col;c.font='9px IBM Plex Mono,monospace';c.textAlign='right';
+    c.fillStyle=col;c.font='None12px IBM Plex Mono,monospace';c.textAlign='right';
     c.fillText(lbl,x0-10,fy+3);
   });
 
@@ -337,7 +337,7 @@ function drawSpectrogram(){
     c.strokeStyle='rgba(255,255,255,0.06)';
     c.beginPath();c.moveTo(32,y);c.lineTo(W,y);c.stroke();
     c.fillStyle='rgba(142,180,212,0.45)';
-    c.font='10px IBM Plex Mono,monospace';c.textAlign='left';
+    c.font='None13px IBM Plex Mono,monospace';c.textAlign='left';
     c.fillText(f>=1000?`${f/1000}k`:`${f}`,3,y-2);
   });
   c.setLineDash([]);
@@ -353,7 +353,7 @@ function drawSpectrogram(){
   c.beginPath();c.moveTo(x0,by);c.lineTo(x1,by);c.stroke();
   c.beginPath();c.moveTo(x0,by-5);c.lineTo(x0,by+3);c.stroke();
   c.beginPath();c.moveTo(x1,by-5);c.lineTo(x1,by+3);c.stroke();
-  c.fillStyle='rgba(255,201,4,0.65)';c.font='10px IBM Plex Mono,monospace';c.textAlign='center';
+  c.fillStyle='rgba(255,201,4,0.65)';c.font='None13px IBM Plex Mono,monospace';c.textAlign='center';
   c.fillText(dur+'ms',(x0+x1)/2,by-11);
 
   // F0 line (inside vowel only)
@@ -363,12 +363,12 @@ function drawSpectrogram(){
   c.beginPath();c.moveTo(x0,f0y);c.lineTo(x1,f0y);c.stroke();
   c.shadowBlur=0;
   if(x1+60<W){
-    c.fillStyle='#FFC904';c.font='bold 10px IBM Plex Mono,monospace';c.textAlign='left';
+    c.fillStyle='#FFC904';c.font='bold 13px IBM Plex Mono,monospace';c.textAlign='left';
     c.fillText(`F₀ ${f0hz}Hz`,x1+5,f0y+4);
   }
 
   // silence labels
-  c.fillStyle='rgba(90,122,154,0.5)';c.font='11px IBM Plex Mono,monospace';c.textAlign='center';
+  c.fillStyle='rgba(90,122,154,0.5)';c.font='None13px IBM Plex Mono,monospace';c.textAlign='center';
   if(x0>36) c.fillText('silence',x0/2,SPEC_H/2);
   if(W-x1>36) c.fillText('silence',(x1+W)/2,SPEC_H/2);
 
@@ -500,7 +500,7 @@ function drawPairVis(cvId,p,isNoun){
 
     // stress marker
     if(stressed){
-      c.fillStyle=color;c.font='11px sans-serif';
+      c.fillStyle=color;c.font='None13px sans-serif';
       c.fillText('▲',x+barW/2,baseY-aH-5);
     }
   });
@@ -510,7 +510,7 @@ function drawPairVis(cvId,p,isNoun){
   c.beginPath();c.moveTo(padX-4,baseY);c.lineTo(W-padX+4,baseY);c.stroke();
 
   // legend
-  c.fillStyle='rgba(255,201,4,0.55)';c.font='10px IBM Plex Mono,monospace';c.textAlign='right';
+  c.fillStyle='rgba(255,201,4,0.55)';c.font='None13px IBM Plex Mono,monospace';c.textAlign='right';
   c.fillText('■ dur',W-8,14);
   c.fillStyle=color;
   c.fillText('■ amp',W-8,26);
