@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Lab: Quantification of Speech</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Exo 2","Segoe UI",sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px;}
+  .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
+  .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:12px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
+  .lab-title{font-size:15px;font-weight:700;color:#dce7f5;}
+  .lab-sub{font-size:11px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;}
+  .section-tag{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFC904;margin-bottom:5px;}
+  .section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .section-note{font-size:13px;color:#8eb4d4;margin-bottom:14px;line-height:1.55;}
+  hr.div{border:none;border-top:1px solid #162135;margin:24px 0;}
+  .card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  @media(max-width:720px){.two-col,.three-col{grid-template-columns:1fr;}}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .chip{flex:1;min-width:90px;text-align:center;background:#060c18;border:1px solid #162135;border-radius:8px;padding:10px 10px 8px;}
+  .chip .cl{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#8eb4d4;margin-bottom:4px;}
+  .chip .cv{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600;transition:color .25s;}
+  .chip .cv.hi{color:#FFC904;}
+  .chip .cv.lo{color:#4a9eff;}
+  .chip .cv.med{color:#6de8b0;}
+  .chip .cv.rate{color:#ff8c42;}
+  .info-box{background:#060c18;border:1px solid #162135;border-radius:8px;padding:12px 14px;font-size:12px;color:#8eb4d4;line-height:1.6;}
+  .yellow-note{background:rgba(255,201,4,0.07);border:1px solid rgba(255,201,4,0.3);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,201,4,0.85);margin-bottom:14px;line-height:1.6;}
+  .btn{padding:9px 18px;border-radius:7px;border:1px solid #162135;background:#0b1424;color:#dce7f5;font-family:"Exo 2",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.3px;}
+  .btn:hover{border-color:#FFC904;color:#FFC904;}
+  .btn.primary{background:#FFC904;color:#000;border-color:#FFC904;}
+  .btn.primary:hover{background:#e6b400;border-color:#e6b400;color:#000;}
+  .btn.danger{border-color:#ff5a5a;color:#ff8080;}
+  .btn.danger:hover{background:rgba(255,90,90,0.1);}
+  .btn.active-green{background:rgba(110,232,176,0.12);border-color:#6de8b0;color:#6de8b0;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+
+  /* ── PART 1: COUNT TYPES ── */
+  .count-input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .data-input{background:#060c18;border:1px solid #162135;border-radius:6px;padding:8px 10px;color:#dce7f5;font-family:"IBM Plex Mono",monospace;font-size:13px;width:100%;outline:none;}
+  .data-input:focus{border-color:#4a9eff;}
+  .array-display{font-family:"IBM Plex Mono",monospace;font-size:13px;color:#8eb4d4;padding:8px 10px;background:#060c18;border:1px solid #162135;border-radius:6px;min-height:36px;margin-bottom:10px;word-break:break-all;letter-spacing:.3px;}
+  .array-display span.hi{color:#FFC904;}
+  .array-display span.lo{color:#4a9eff;}
+  .array-display span.med{color:#6de8b0;}
+  .def-row{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+  .def-item{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;background:#060c18;border:1px solid #162135;border-radius:7px;font-size:12px;}
+  .def-label{font-weight:700;text-transform:uppercase;letter-spacing:.5px;min-width:60px;color:#FFC904;flex-shrink:0;}
+  .def-text{color:#8eb4d4;line-height:1.5;}
+
+  /* ── PART 2: TEMPORAL TOOL ── */
+  .mode-tabs{display:flex;gap:0;margin-bottom:14px;border-radius:8px;overflow:hidden;border:1px solid #162135;}
+  .mode-tab{flex:1;padding:10px 6px;text-align:center;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .15s;background:#060c18;color:#8eb4d4;border:none;font-family:"Exo 2",sans-serif;}
+  .mode-tab+.mode-tab{border-left:1px solid #162135;}
+  .mode-tab.active{background:#0b1424;color:#FFC904;}
+  .mode-panel{display:none;}.mode-panel.active{display:block;}
+  .concept-strip{background:#060c18;border:1px solid #162135;border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+  .concept-strip .cs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+  .concept-strip .cs-body{font-size:12px;color:#8eb4d4;line-height:1.5;}
+  .concept-strip .cs-eg{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#6de8b0;margin-top:4px;}
+  .sw-display{font-family:"IBM Plex Mono",monospace;font-size:52px;font-weight:600;color:#FFC904;text-align:center;padding:14px 0 8px;letter-spacing:2px;}
+  .countdown-ring{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:48px;font-weight:600;padding:14px 0 8px;letter-spacing:2px;}
+  .click-btn{width:100%;padding:22px;border-radius:10px;border:2px solid #4a9eff;background:rgba(74,158,255,0.07);color:#4a9eff;font-family:"Exo 2",sans-serif;font-size:18px;font-weight:800;cursor:pointer;transition:all .1s;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+  .click-btn:active{background:rgba(74,158,255,0.18);transform:scale(0.98);}
+  .click-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .unit-toggle{display:flex;gap:6px;margin-bottom:10px;}
+  .unit-btn{flex:1;padding:7px;border-radius:6px;border:1px solid #162135;background:#060c18;color:#8eb4d4;font-family:"Exo 2",sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;}
+  .unit-btn.active{border-color:#ff8c42;color:#ff8c42;background:rgba(255,140,66,0.08);}
+  .click-log{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#8eb4d4;max-height:80px;overflow-y:auto;background:#060c18;border:1px solid #162135;border-radius:6px;padding:6px 8px;line-height:1.8;}
+  /* time points */
+  .tp-timeline{position:relative;height:36px;background:#060c18;border:1px solid #162135;border-radius:6px;margin:10px 0;overflow:hidden;}
+  .tp-bar{position:absolute;top:0;height:100%;background:rgba(74,158,255,0.18);border-left:2px solid #4a9eff;border-right:2px solid #4a9eff;transition:width .1s,left .1s;}
+  .tp-time-label{position:absolute;top:50%;transform:translateY(-50%);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;color:#4a9eff;padding:0 6px;}
+  .tp-marker{position:absolute;top:0;width:2px;height:100%;}
+  .tp-marker.start-mark{background:#6de8b0;}
+  .tp-marker.end-mark{background:#ff8c42;}
+  /* duration log */
+  .dur-log{display:flex;flex-direction:column;gap:4px;max-height:120px;overflow-y:auto;}
+  .dur-entry{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:#060c18;border:1px solid #162135;border-radius:5px;font-family:"IBM Plex Mono",monospace;font-size:12px;}
+  .dur-entry .de-n{color:#8eb4d4;}
+  .dur-entry .de-v{color:#6de8b0;font-weight:600;}
+  .hold-btn{width:100%;padding:26px;border-radius:10px;border:2px solid #6de8b0;background:rgba(109,232,176,0.06);color:#6de8b0;font-family:"Exo 2",sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .1s;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;user-select:none;}
+  .hold-btn.holding{background:rgba(109,232,176,0.18);transform:scale(0.99);}
+
+  /* ── PART 4: RATE BUILDER ── */
+  .rate-builder{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .rb-box{background:#060c18;border:2px solid #162135;border-radius:8px;padding:10px 14px;text-align:center;min-width:110px;}
+  .rb-box.count-box{border-color:#FFC904;}
+  .rb-box.time-box{border-color:#4a9eff;}
+  .rb-box .rb-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#8eb4d4;margin-bottom:5px;}
+  .rb-box select{background:#060c18;border:none;color:#dce7f5;font-family:"IBM Plex Mono",monospace;font-size:13px;outline:none;width:100%;cursor:pointer;}
+  .rb-div{font-size:28px;font-weight:700;color:#8eb4d4;}
+  .rb-eq{font-size:22px;font-weight:700;color:#6de8b0;}
+  .rb-result{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;color:#6de8b0;}
+  .rb-meaning{font-size:12px;color:#8eb4d4;line-height:1.55;padding:10px 12px;background:#060c18;border:1px solid #162135;border-radius:7px;}
+
+  /* ── PART 5: GOAL WRITING ── */
+  .goal-section{margin-bottom:18px;}
+  .goal-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+  .goal-label.do{color:#6de8b0;}
+  .goal-label.crit{color:#4a9eff;}
+  .goal-label.cond{color:#ff8c42;}
+  .goal-textarea{width:100%;background:#060c18;border:1px solid #162135;border-radius:7px;padding:10px 12px;color:#dce7f5;font-family:"Exo 2",sans-serif;font-size:13px;resize:vertical;min-height:60px;outline:none;line-height:1.5;}
+  .goal-textarea:focus{border-color:#4a9eff;}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:#060c18;border:1px solid #162135;border-radius:7px;margin-bottom:6px;cursor:pointer;transition:border-color .15s;}
+  .check-item:hover{border-color:#8eb4d4;}
+  .check-item.checked{border-color:#6de8b0;background:rgba(109,232,176,0.05);}
+  .check-item input[type=checkbox]{accent-color:#6de8b0;width:15px;height:15px;flex-shrink:0;margin-top:1px;cursor:pointer;}
+  .check-text{font-size:12px;color:#8eb4d4;line-height:1.5;}
+  .check-item.checked .check-text{color:#dce7f5;}
+  .reflect-q{padding:10px 12px;background:#060c18;border-left:3px solid #FFC904;border-radius:0 6px 6px 0;margin-bottom:8px;}
+  .reflect-q p{font-size:12px;color:#8eb4d4;line-height:1.55;}
+  .reflect-q strong{color:#FFC904;}
+  .goal-preview{font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.7;padding:12px;background:#060c18;border:1px solid #162135;border-radius:8px;min-height:50px;color:#dce7f5;word-break:break-word;}
+  .goal-preview .part-do{color:#6de8b0;}
+  .goal-preview .part-crit{color:#4a9eff;}
+  .goal-preview .part-cond{color:#ff8c42;}
+  .goal-preview .placeholder{color:#3a5a7a;font-style:italic;}
+  .score-bar{display:flex;gap:4px;margin-bottom:6px;}
+  .score-seg{flex:1;height:6px;border-radius:3px;background:#162135;transition:background .3s;}
+  .score-seg.filled{background:#6de8b0;}
+
+  .footer{text-align:center;padding:14px 0 2px;font-size:10px;color:#5a7a9a;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="ucf-badge">UCF</div>
+  <div>
+    <div class="lab-title">SPA 3011 — Quantification Lab</div>
+    <div class="lab-sub">Counts · Temporal Measures · Rates · Goal Writing</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PART 1 — COUNT TYPES
+═══════════════════════════════════════════════════ -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">Count Data</div>
+<div class="section-note">Enter a set of numbers separated by commas. The tool will compute each count statistic and highlight values in your dataset. Understanding what each statistic tells you about a patient's performance is more important than the math itself.</div>
+
+<div class="card">
+  <div class="count-input-row">
+    <input class="data-input" id="countInput" type="text" placeholder="e.g.  4, 7, 2, 9, 7, 3, 8, 5" oninput="computeCounts()">
+    <button class="btn" onclick="loadCountExample()">Load Example</button>
+  </div>
+  <div class="array-display" id="arrayDisplay" style="color:#3a5a7a;font-style:italic;">Enter data above to see values highlighted…</div>
+  <div class="chip-row">
+    <div class="chip"><div class="cl">Total</div><div class="cv" id="c-total">—</div></div>
+    <div class="chip"><div class="cl">Max</div><div class="cv hi" id="c-max">—</div></div>
+    <div class="chip"><div class="cl">Min</div><div class="cv lo" id="c-min">—</div></div>
+    <div class="chip"><div class="cl">Median</div><div class="cv med" id="c-med">—</div></div>
+    <div class="chip"><div class="cl">Mean</div><div class="cv" id="c-mean" style="color:#c084fc;">—</div></div>
+  </div>
+  <div class="def-row">
+    <div class="def-item"><div class="def-label">Total</div><div class="def-text">The sum of all data points. Useful for knowing how much of something occurred across an entire sample — e.g., total words produced in a session.</div></div>
+    <div class="def-item"><div class="def-label" style="color:#FFC904;">Max</div><div class="def-text">The single highest value recorded. Tells you the best performance the patient achieved under any condition in that sample.</div></div>
+    <div class="def-item"><div class="def-label" style="color:#4a9eff;">Min</div><div class="def-text">The single lowest value. Helps identify the floor — the hardest conditions or worst performance observed.</div></div>
+    <div class="def-item"><div class="def-label" style="color:#6de8b0;">Median</div><div class="def-text">The middle value when sorted. Resistant to outliers — useful when a few extreme trials might skew the average.</div></div>
+    <div class="def-item"><div class="def-label" style="color:#c084fc;">Mean</div><div class="def-text">The arithmetic average. Sensitive to outliers. Commonly reported in therapy notes and research as the central estimate of performance.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PART 2 — TEMPORAL MEASURES + LIVE TOOL
+═══════════════════════════════════════════════════ -->
+<hr class="div">
+<div class="section-tag">Part 2</div>
+<div class="section-title">Temporal Measures</div>
+<div class="section-note">Time-based data has three distinct forms — and they are not interchangeable. Select a mode below to explore each one with a live tool. Understanding which type you are collecting changes everything about how you calculate and report a rate.</div>
+
+<div class="card">
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('sample',this)">⏱ Sample Time</button>
+    <button class="mode-tab" onclick="setMode('points',this)">📍 Time Points</button>
+    <button class="mode-tab" onclick="setMode('duration',this)">⏳ Duration</button>
+  </div>
+
+  <!-- MODE 1: SAMPLE TIME -->
+  <div class="mode-panel active" id="mode-sample">
+    <div class="concept-strip">
+      <div class="cs-title" style="color:#FFC904;">Sample Time — the observation window</div>
+      <div class="cs-body">The total stretch of time from which data is collected. You define the window first, then count events within it. Events outside the window do not count.</div>
+      <div class="cs-eg">e.g., "collect data during a 30-second spontaneous speech sample"</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:#8eb4d4;white-space:nowrap;">Window:</span>
+      <select id="st-window" style="background:#060c18;border:1px solid #162135;border-radius:6px;padding:6px 8px;color:#dce7f5;font-family:'IBM Plex Mono',monospace;font-size:13px;outline:none;cursor:pointer;">
+        <option value="15">15 seconds</option>
+        <option value="30" selected>30 seconds</option>
+        <option value="60">60 seconds</option>
+        <option value="120">2 minutes</option>
+      </select>
+      <button class="btn primary" id="st-startBtn" onclick="stToggle()">Start</button>
+      <button class="btn danger" onclick="stReset()">Reset</button>
+    </div>
+    <div class="countdown-ring" id="st-display" style="color:#FFC904;font-size:44px;padding:10px 0;text-align:center;">0:30.0</div>
+    <div style="background:#060c18;border:1px solid #162135;border-radius:6px;height:8px;margin-bottom:12px;overflow:hidden;">
+      <div id="st-progress" style="height:100%;width:100%;background:#FFC904;transition:width .1s;border-radius:6px;"></div>
+    </div>
+    <div class="info-box" style="font-size:12px;line-height:1.6;">
+      The sample window is the denominator of every rate you calculate. A 30-second and a 60-second window with the same number of events produce very different rates — which is exactly why you must define the window before counting anything. Head to <strong style="color:#FFC904;">Part 3</strong> to count events and build your rate.
+    </div>
+  </div>
+
+  <!-- MODE 2: TIME POINTS -->
+  <div class="mode-panel" id="mode-points">
+    <div class="concept-strip">
+      <div class="cs-title" style="color:#4a9eff;">Time Points — anchoring your window</div>
+      <div class="cs-body">Time points are the start and end markers that define where your sample sits within a longer recording. The sample does not have to begin at zero. You choose the window by marking its boundaries.</div>
+      <div class="cs-eg">e.g., "I started collecting at 0:18 and stopped at 1:48 — that 90-second stretch is my sample"</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;color:#8eb4d4;margin-bottom:10px;">Run the timer as if playing a recording. Mark your start and end points anywhere within it to define your data window.</div>
+        <div class="btn-row">
+          <button class="btn primary" id="tp-startBtn" onclick="tpToggle()">Start Timer</button>
+          <button class="btn danger" onclick="tpReset()">Reset</button>
+        </div>
+        <div class="sw-display" id="tp-display">0:00.0</div>
+        <div class="tp-timeline" id="tp-timeline">
+          <div class="tp-bar" id="tp-bar" style="width:0;left:0;display:none;"></div>
+        </div>
+        <div class="btn-row" style="margin-bottom:10px;">
+          <button class="btn" id="tp-markStart" onclick="tpMarkStart()" disabled style="border-color:#6de8b0;color:#6de8b0;flex:1;">▶ Mark Start</button>
+          <button class="btn" id="tp-markEnd" onclick="tpMarkEnd()" disabled style="border-color:#ff8c42;color:#ff8c42;flex:1;">■ Mark End</button>
+        </div>
+        <div class="chip-row" style="margin-bottom:6px;">
+          <div class="chip"><div class="cl">Start Point</div><div class="cv" id="tp-start" style="color:#6de8b0;font-size:14px;">—</div></div>
+          <div class="chip"><div class="cl">End Point</div><div class="cv" id="tp-end" style="color:#ff8c42;font-size:14px;">—</div></div>
+          <div class="chip"><div class="cl">Sample Duration</div><div class="cv" id="tp-dur" style="color:#4a9eff;font-size:14px;">—</div></div>
+        </div>
+      </div>
+      <div class="info-box" style="font-size:12px;line-height:1.7;">
+        <span style="color:#4a9eff;font-weight:700;">Why this matters:</span><br>
+        In real clinical recordings, you rarely start your sample at second zero. There may be setup time, conversation before the task, or noise at the beginning.<br><br>
+        Marking explicit time points ensures anyone reviewing your data knows exactly which segment was analyzed — and can replicate your measurement.<br><br>
+        <span style="color:#6de8b0;">Sample duration = End point − Start point</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODE 3: DURATION -->
+  <div class="mode-panel" id="mode-duration">
+    <div class="concept-strip">
+      <div class="cs-title" style="color:#6de8b0;">Duration — how long a single event lasts</div>
+      <div class="cs-body">Duration measures the length of one specific behavior — a sustained vowel, a pause, a block, an utterance. Each press captures one event. Multiple durations can then be analyzed as a dataset using count statistics from Part 1.</div>
+      <div class="cs-eg">e.g., "Patient sustained /a/ for 6.2s, 8.4s, and 7.1s — mean duration = 7.2s"</div>
+    </div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:12px;color:#8eb4d4;margin-bottom:10px;">Press and hold the button for the entire duration of each event. Release to log it. Collect multiple events to build a dataset.</div>
+        <div class="sw-display" id="dur-display" style="color:#6de8b0;">0.00s</div>
+        <button class="hold-btn" id="dur-holdBtn"
+          onmousedown="durStart()" onmouseup="durStop()"
+          ontouchstart="durStart(event)" ontouchend="durStop(event)">
+          Hold for Event Duration
+        </button>
+        <button class="btn danger" onclick="durClear()" style="width:100%;margin-bottom:10px;">Clear All</button>
+        <div class="chip-row" style="margin-bottom:6px;">
+          <div class="chip"><div class="cl">Count</div><div class="cv" id="dur-count">0</div></div>
+          <div class="chip"><div class="cl">Mean</div><div class="cv med" id="dur-mean">—</div></div>
+          <div class="chip"><div class="cl">Max</div><div class="cv hi" id="dur-max">—</div></div>
+          <div class="chip"><div class="cl">Min</div><div class="cv lo" id="dur-min">—</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#8eb4d4;margin-bottom:6px;">Logged Events</div>
+        <div class="dur-log" id="dur-log"><div style="font-size:12px;color:#3a5a7a;font-style:italic;">No events recorded yet…</div></div>
+        <div class="info-box" style="font-size:12px;line-height:1.6;margin-top:10px;">
+          <span style="color:#6de8b0;font-weight:700;">Why this matters:</span><br>
+          Duration data becomes a count dataset. Once you have multiple durations, you can compute mean, max, and min — and use them in goals (e.g., "sustain phonation for ≥10s").
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+<div class="section-tag">Part 3</div>
+<div class="section-title">Rate Builder</div>
+<div class="section-note">A rate is a count divided by time. Use the event counter to measure a behavior live, then label what you counted and over what time unit. The combination is your clinical rate.</div>
+
+<div class="card">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4a9eff;margin-bottom:10px;">① Count Your Events</div>
+  <div class="two-col" style="margin-bottom:14px;">
+    <div>
+      <div class="btn-row">
+        <button class="btn primary" id="rb-swBtn" onclick="rbSwToggle()">Start Timer</button>
+        <button class="btn danger" onclick="rbSwReset()">Reset</button>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:44px;font-weight:600;color:#FFC904;text-align:center;padding:8px 0;letter-spacing:2px;" id="rb-swDisplay">0:00.0</div>
+      <button class="click-btn" id="rb-clickBtn" onclick="rbClick()" disabled>Click to Count</button>
+      <div class="chip-row" style="margin-bottom:4px;">
+        <div class="chip"><div class="cl">Events</div><div class="cv" id="rb-clicks">0</div></div>
+        <div class="chip"><div class="cl">Elapsed</div><div class="cv" id="rb-elapsed" style="color:#4a9eff;">0.0s</div></div>
+      </div>
+      <div class="click-log" id="rb-log">Timestamps will appear here…</div>
+    </div>
+    <div class="info-box" style="font-size:12px;line-height:1.7;align-self:start;">
+      Start the timer and click once per event — a word, a pause, a disfluency, anything countable.<br><br>
+      When done, use the dropdowns below to label <em>what</em> you counted and <em>over what time unit</em>. The rate is calculated automatically.<br><br>
+      <span style="color:#FFC904;">Rate = Count ÷ Duration</span>
+    </div>
+  </div>
+
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6de8b0;margin-bottom:10px;">② Label Your Rate</div>
+  <div class="rate-builder">
+    <div class="rb-box count-box">
+      <div class="rb-label">I was counting…</div>
+      <select id="rb-count" onchange="updateRateBuilder()">
+        <option value="words">Words produced</option>
+        <option value="syllables">Syllables produced</option>
+        <option value="disfluencies">Disfluencies</option>
+        <option value="blocks">Blocks</option>
+        <option value="repetitions">Repetitions</option>
+        <option value="prolongations">Prolongations</option>
+        <option value="pauses">Pauses</option>
+        <option value="errors">Articulation errors</option>
+        <option value="correct">Correct responses</option>
+        <option value="incorrect">Incorrect responses</option>
+        <option value="self-corrections">Self-corrections</option>
+        <option value="cues-needed">Cues needed</option>
+        <option value="intelligible-words">Intelligible words</option>
+        <option value="unintelligible-words">Unintelligible words</option>
+        <option value="morphemes">Morphemes</option>
+        <option value="utterances">Utterances</option>
+        <option value="topic-shifts">Topic shifts</option>
+        <option value="eye-contact">Eye contact instances</option>
+        <option value="swallows">Swallows</option>
+        <option value="coughs">Coughs / throat clears</option>
+      </select>
+    </div>
+    <div class="rb-div">÷</div>
+    <div class="rb-box time-box">
+      <div class="rb-label">Per…</div>
+      <select id="rb-time" onchange="updateRateBuilder()">
+        <option value="second">Second</option>
+        <option value="minute">Minute</option>
+        <option value="hour">Hour</option>
+        <option value="10-seconds">10 Seconds</option>
+        <option value="30-seconds">30 Seconds</option>
+        <option value="2-minutes">2 Minutes</option>
+        <option value="5-minutes">5 Minutes</option>
+        <option value="session">Session</option>
+        <option value="half-session">Half session</option>
+        <option value="paragraph">Paragraph</option>
+        <option value="passage">Reading passage</option>
+        <option value="utterance">Utterance</option>
+        <option value="sentence">Sentence</option>
+        <option value="trial">Trial</option>
+        <option value="meal">Meal</option>
+        <option value="task">Task</option>
+      </select>
+    </div>
+    <div class="rb-eq">=</div>
+    <div>
+      <div class="rb-result" id="rb-result-label">Words / Second</div>
+      <div class="rb-result" id="rb-live-rate" style="font-size:16px;color:#ff8c42;margin-top:4px;">—</div>
+      <div style="font-size:11px;color:#8eb4d4;margin-top:2px;">live rate</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PART 4 — GOAL WRITING
+═══════════════════════════════════════════════════ -->
+<hr class="div">
+<div class="section-tag">Part 4</div>
+<div class="section-title">Goal Writing Guide</div>
+<div class="section-note">A well-written therapy goal has three parts. Each part has a specific job. Build your goal using the fields below, then use the checklist and reflective questions to evaluate its quality.</div>
+
+<div class="two-col">
+  <div>
+    <div class="card">
+      <div class="goal-section">
+        <div class="goal-label do">The Do — Action</div>
+        <textarea class="goal-textarea" id="g-do" placeholder="What will the patient do? (e.g., 'The patient will produce /r/ in all word positions…')" oninput="updateGoalPreview()"></textarea>
+      </div>
+      <div class="goal-section">
+        <div class="goal-label crit">The Criteria — Measurable Standard</div>
+        <textarea class="goal-textarea" id="g-crit" placeholder="How will success be measured? (e.g., '…with 90% accuracy across 20 opportunities…')" oninput="updateGoalPreview()"></textarea>
+      </div>
+      <div class="goal-section" style="margin-bottom:0;">
+        <div class="goal-label cond">The Condition — Context</div>
+        <textarea class="goal-textarea" id="g-cond" placeholder="Under what conditions? (e.g., '…during structured sentence reading with minimal verbal cues.')" oninput="updateGoalPreview()"></textarea>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div style="font-size:12px;font-weight:700;color:#dce7f5;margin-bottom:8px;">Goal Preview</div>
+      <div class="goal-preview" id="goalPreview"><span class="placeholder">Your goal will appear here as you type…</span></div>
+      <div style="margin-top:10px;font-size:11px;color:#8eb4d4;margin-bottom:4px;">Completeness</div>
+      <div class="score-bar" id="scoreBar">
+        <div class="score-seg" id="sc0"></div>
+        <div class="score-seg" id="sc1"></div>
+        <div class="score-seg" id="sc2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:#dce7f5;margin-bottom:10px;">Self-Check</div>
+      <div id="checklistWrap">
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">The action is specific — it describes a behavior, not a feeling or state.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">The criteria uses a number or quantity — not a vague word like "better" or "improved."</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">The criteria is directly tied to the action — the thing being measured actually reflects the skill being practiced.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">The condition specifies the context — structured task, conversation, reading, etc.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">The condition specifies the cueing level — independent, minimal, moderate, or maximal cues.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">A clinician who has never met this patient could understand and track this goal.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">There is a clear endpoint — a point at which the patient passes this goal.</div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><div class="check-text">This goal can show a client's progression in a short amount of time — small improvements should be visible in the data, not hidden until the goal is fully met.</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div style="font-size:12px;font-weight:700;color:#dce7f5;margin-bottom:10px;">Reflective Questions</div>
+      <div class="reflect-q"><p><strong>Could this goal go on forever?</strong> If a patient who never improves can still technically continue working on this goal without a clear pass/fail, the criteria needs work.</p></div>
+      <div class="reflect-q"><p><strong>Does the measure match the outcome?</strong> If you are tracking phonation amplitude in dB but the goal is about sentence length, these are not connected. Ask: would improving this number actually reflect the skill you are treating?</p></div>
+      <div class="reflect-q"><p><strong>Is the accuracy percentage meaningful?</strong> "80% accuracy" requires you to define what counts as one opportunity. Without that, 80% of what?</p></div>
+      <div class="reflect-q"><p><strong>Would a different clinician write this the same way?</strong> If the goal requires insider knowledge of your methods or terminology, it is not objective enough.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">SPA 3011 · Speech Sciences · UCF Communication Sciences &amp; Disorders</div>
+
+<script>
+/* ── PART 1: COUNTS ── */
+function computeCounts(){
+  const raw = document.getElementById('countInput').value;
+  const nums = raw.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+  if(!nums.length){
+    document.getElementById('arrayDisplay').innerHTML='<span style="color:#3a5a7a;font-style:italic;">Enter data above to see values highlighted…</span>';
+    ['c-total','c-max','c-min','c-med','c-mean'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+  const sorted=[...nums].sort((a,b)=>a-b);
+  const total=nums.reduce((a,b)=>a+b,0);
+  const max=sorted[sorted.length-1];
+  const min=sorted[0];
+  const mid=Math.floor(sorted.length/2);
+  const median=sorted.length%2===0?(sorted[mid-1]+sorted[mid])/2:sorted[mid];
+  const mean=total/nums.length;
+  document.getElementById('c-total').textContent=total;
+  document.getElementById('c-max').textContent=max;
+  document.getElementById('c-min').textContent=min;
+  document.getElementById('c-med').textContent=Number.isInteger(median)?median:median.toFixed(1);
+  document.getElementById('c-mean').textContent=mean.toFixed(2);
+
+  // highlight
+  const disp=nums.map(n=>{
+    if(n===max&&n===min) return `<span class="med">${n}</span>`;
+    if(n===max) return `<span class="hi">${n}</span>`;
+    if(n===min) return `<span class="lo">${n}</span>`;
+    return `<span>${n}</span>`;
+  }).join('<span style="color:#5a7a9a;">, </span>');
+  document.getElementById('arrayDisplay').innerHTML=disp;
+}
+function loadCountExample(){
+  const count=Math.floor(Math.random()*6)+5;
+  const nums=Array.from({length:count},()=>Math.floor(Math.random()*20)+1);
+  document.getElementById('countInput').value=nums.join(', ');
+  computeCounts();
+}
+
+/* ── PART 2: TEMPORAL MODES ── */
+function setMode(mode, el){
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mode-'+mode).classList.add('active');
+}
+
+/* MODE 1: SAMPLE TIME */
+let stRunning=false,stStart=0,stElapsed=0,stInterval=null,stWindow=30;
+function stToggle(){
+  stWindow=parseInt(document.getElementById('st-window').value);
+  if(!stRunning){
+    stStart=performance.now()-stElapsed;
+    stInterval=setInterval(stTick,50);
+    stRunning=true;
+    document.getElementById('st-startBtn').textContent='Pause';
+  } else {
+    clearInterval(stInterval); stRunning=false;
+    document.getElementById('st-startBtn').textContent='Resume';
+  }
+}
+function stTick(){
+  stElapsed=performance.now()-stStart;
+  const remaining=Math.max(0,stWindow-stElapsed/1000);
+  const m=Math.floor(remaining/60); const s=(remaining%60).toFixed(1);
+  document.getElementById('st-display').textContent=m+':'+(parseFloat(s)<10?'0':'')+s;
+  document.getElementById('st-progress').style.width=(remaining/stWindow*100)+'%';
+  if(remaining<=0){
+    clearInterval(stInterval); stRunning=false;
+    document.getElementById('st-display').textContent='0:00.0';
+    document.getElementById('st-display').style.color='#6de8b0';
+    document.getElementById('st-startBtn').textContent='Done';
+  }
+}
+function stReset(){
+  clearInterval(stInterval); stRunning=false; stElapsed=0;
+  stWindow=parseInt(document.getElementById('st-window').value);
+  const secs=stWindow%60; const mins=Math.floor(stWindow/60);
+  document.getElementById('st-display').textContent=mins+':'+(secs<10?'0':'')+secs+'.0';
+  document.getElementById('st-display').style.color='#FFC904';
+  document.getElementById('st-progress').style.width='100%';
+  document.getElementById('st-startBtn').textContent='Start';
+}
+document.getElementById('st-window').addEventListener('change',stReset);
+
+/* ── PART 3: RATE BUILDER STOPWATCH ── */
+let rbRunning=false,rbStart=0,rbElapsed=0,rbInterval=null,rbClicks=[];
+function rbSwToggle(){
+  if(!rbRunning){
+    rbStart=performance.now()-rbElapsed;
+    rbInterval=setInterval(rbTick,50);
+    rbRunning=true;
+    document.getElementById('rb-swBtn').textContent='Pause';
+    document.getElementById('rb-clickBtn').disabled=false;
+  } else {
+    clearInterval(rbInterval); rbRunning=false;
+    document.getElementById('rb-swBtn').textContent='Resume';
+  }
+}
+function rbTick(){
+  rbElapsed=performance.now()-rbStart;
+  const t=rbElapsed/1000;
+  const m=Math.floor(t/60); const s=(t%60).toFixed(1);
+  document.getElementById('rb-swDisplay').textContent=m+':'+(parseFloat(s)<10?'0':'')+s;
+  document.getElementById('rb-elapsed').textContent=t.toFixed(1)+'s';
+  rbUpdateRate();
+}
+function rbClick(){
+  const t=rbElapsed/1000;
+  rbClicks.push(t);
+  document.getElementById('rb-clicks').textContent=rbClicks.length;
+  const log=document.getElementById('rb-log');
+  log.textContent+=(rbClicks.length>1?'  ':'')+'['+t.toFixed(2)+'s]';
+  log.scrollLeft=log.scrollWidth;
+  rbUpdateRate();
+}
+function rbSwReset(){
+  clearInterval(rbInterval); rbRunning=false; rbElapsed=0; rbClicks=[];
+  document.getElementById('rb-swDisplay').textContent='0:00.0';
+  document.getElementById('rb-clicks').textContent='0';
+  document.getElementById('rb-elapsed').textContent='0.0s';
+  document.getElementById('rb-live-rate').textContent='—';
+  document.getElementById('rb-log').textContent='Timestamps will appear here…';
+  document.getElementById('rb-clickBtn').disabled=true;
+  document.getElementById('rb-swBtn').textContent='Start Timer';
+}
+function rbUpdateRate(){
+  const t=rbElapsed/1000;
+  if(t<0.1||!rbClicks.length){document.getElementById('rb-live-rate').textContent='—';return;}
+  const timeVal=rbTimeInSeconds();
+  if(!timeVal){document.getElementById('rb-live-rate').textContent=rbClicks.length+' events (no time conversion for this unit)';return;}
+  const rate=(rbClicks.length/t)*timeVal;
+  const tu=document.getElementById('rb-time').value.replace(/-/g,' ');
+  document.getElementById('rb-live-rate').textContent=rate.toFixed(2)+' / '+tu;
+}
+function rbTimeInSeconds(){
+  const map={'second':1,'minute':60,'hour':3600,'10-seconds':10,'30-seconds':30,'2-minutes':120,'5-minutes':300,'session':3600,'half-session':1800};
+  return map[document.getElementById('rb-time').value]||null;
+}
+
+/* ── PART 3: RATE BUILDER LABEL ── */
+
+/* MODE 2: TIME POINTS */
+let tpRunning=false,tpStart=0,tpElapsed=0,tpInterval=null,tpStartMark=null,tpEndMark=null;
+function tpToggle(){
+  if(!tpRunning){
+    tpStart=performance.now()-tpElapsed;
+    tpInterval=setInterval(tpTick,50);
+    tpRunning=true;
+    document.getElementById('tp-startBtn').textContent='Pause';
+    document.getElementById('tp-markStart').disabled=false;
+  } else {
+    clearInterval(tpInterval); tpRunning=false;
+    document.getElementById('tp-startBtn').textContent='Resume';
+  }
+}
+function tpTick(){
+  tpElapsed=performance.now()-tpStart;
+  const t=tpElapsed/1000;
+  const m=Math.floor(t/60); const s=(t%60).toFixed(1);
+  document.getElementById('tp-display').textContent=m+':'+(parseFloat(s)<10?'0':'')+s;
+  tpUpdateBar();
+}
+function tpMarkStart(){
+  tpStartMark=tpElapsed/1000; tpEndMark=null;
+  document.getElementById('tp-start').textContent=tpStartMark.toFixed(2)+'s';
+  document.getElementById('tp-end').textContent='—';
+  document.getElementById('tp-dur').textContent='—';
+  document.getElementById('tp-markEnd').disabled=false;
+  tpUpdateBar();
+}
+function tpMarkEnd(){
+  if(tpStartMark===null) return;
+  tpEndMark=tpElapsed/1000;
+  document.getElementById('tp-end').textContent=tpEndMark.toFixed(2)+'s';
+  const dur=tpEndMark-tpStartMark;
+  document.getElementById('tp-dur').textContent=dur.toFixed(2)+'s';
+  tpUpdateBar();
+}
+function tpUpdateBar(){
+  const total=Math.max(tpElapsed/1000,1);
+  const bar=document.getElementById('tp-bar');
+  if(tpStartMark===null){bar.style.display='none';return;}
+  bar.style.display='block';
+  const left=(tpStartMark/total*100)+'%';
+  const end=tpEndMark!==null?tpEndMark:tpElapsed/1000;
+  const width=((end-tpStartMark)/total*100)+'%';
+  bar.style.left=left; bar.style.width=width;
+}
+function tpReset(){
+  clearInterval(tpInterval); tpRunning=false; tpElapsed=0; tpStartMark=null; tpEndMark=null;
+  document.getElementById('tp-display').textContent='0:00.0';
+  document.getElementById('tp-start').textContent='—';
+  document.getElementById('tp-end').textContent='—';
+  document.getElementById('tp-dur').textContent='—';
+  document.getElementById('tp-bar').style.display='none';
+  document.getElementById('tp-startBtn').textContent='Start Timer';
+  document.getElementById('tp-markStart').disabled=true;
+  document.getElementById('tp-markEnd').disabled=true;
+}
+
+/* MODE 3: DURATION */
+let durHolding=false,durHoldStart=0,durHoldInterval=null,durEvents=[];
+function durStart(e){
+  if(e) e.preventDefault();
+  durHolding=true; durHoldStart=performance.now();
+  document.getElementById('dur-holdBtn').classList.add('holding');
+  durHoldInterval=setInterval(()=>{
+    const t=(performance.now()-durHoldStart)/1000;
+    document.getElementById('dur-display').textContent=t.toFixed(2)+'s';
+  },30);
+}
+function durStop(e){
+  if(e) e.preventDefault();
+  if(!durHolding) return;
+  durHolding=false;
+  clearInterval(durHoldInterval);
+  const dur=(performance.now()-durHoldStart)/1000;
+  document.getElementById('dur-holdBtn').classList.remove('holding');
+  document.getElementById('dur-display').textContent=dur.toFixed(2)+'s';
+  durEvents.push(dur);
+  durUpdateLog();
+}
+function durUpdateLog(){
+  const log=document.getElementById('dur-log');
+  if(!durEvents.length){log.innerHTML='<div style="font-size:12px;color:#3a5a7a;font-style:italic;">No events recorded yet…</div>';return;}
+  log.innerHTML=durEvents.map((d,i)=>`<div class="dur-entry"><span class="de-n">Event ${i+1}</span><span class="de-v">${d.toFixed(2)}s</span></div>`).join('');
+  log.scrollTop=log.scrollHeight;
+  const sorted=[...durEvents].sort((a,b)=>a-b);
+  const mean=durEvents.reduce((a,b)=>a+b,0)/durEvents.length;
+  document.getElementById('dur-count').textContent=durEvents.length;
+  document.getElementById('dur-mean').textContent=mean.toFixed(2)+'s';
+  document.getElementById('dur-max').textContent=sorted[sorted.length-1].toFixed(2)+'s';
+  document.getElementById('dur-min').textContent=sorted[0].toFixed(2)+'s';
+}
+function durClear(){
+  durEvents=[];
+  document.getElementById('dur-display').textContent='0.00s';
+  document.getElementById('dur-count').textContent='0';
+  document.getElementById('dur-mean').textContent='—';
+  document.getElementById('dur-max').textContent='—';
+  document.getElementById('dur-min').textContent='—';
+  durUpdateLog();
+}
+
+/* ── PART 3: RATE BUILDER ── */
+function updateRateBuilder(){
+  const c=document.getElementById('rb-count').value;
+  const t=document.getElementById('rb-time').value;
+  document.getElementById('rb-result-label').textContent=c.replace(/-/g,' ')+' / '+t.replace(/-/g,' ');
+  rbUpdateRate();
+}
+updateRateBuilder();
+
+/* ── PART 4: GOAL WRITING ── */
+function updateGoalPreview(){
+  const doT=document.getElementById('g-do').value.trim();
+  const crit=document.getElementById('g-crit').value.trim();
+  const cond=document.getElementById('g-cond').value.trim();
+  const prev=document.getElementById('goalPreview');
+  if(!doT&&!crit&&!cond){
+    prev.innerHTML='<span class="placeholder">Your goal will appear here as you type…</span>';
+  } else {
+    prev.innerHTML=(doT?`<span class="part-do">${doT}</span> `:'<span class="placeholder">[action] </span>')+
+      (crit?`<span class="part-crit">${crit}</span> `:'<span class="placeholder">[criteria] </span>')+
+      (cond?`<span class="part-cond">${cond}</span>`:'<span class="placeholder">[condition]</span>');
+  }
+  [0,1,2].forEach(i=>{
+    const filled=[!!doT,!!crit,!!cond][i];
+    document.getElementById('sc'+i).className='score-seg'+(filled?' filled':'');
+  });
+}
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  el.querySelector('input').checked=el.classList.contains('checked');
+}
+</script>
+</body>
+</html>
