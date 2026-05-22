@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPA 3011 — Speech Science Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #060c1a;
+  --bg-nav:     #040912;
+  --border:     #162135;
+  --border2:    #1e2f48;
+  --gold:       #FFC904;
+  --gold-dim:   rgba(255,201,4,0.14);
+  --text:       #dce7f5;
+  --text-muted: #7090b0;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 52px;
+  padding: 0 24px;
+  background: linear-gradient(135deg, #000 0%, #0a1628 60%, #091222 100%);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  flex-shrink: 0;
+}
+.ucf-badge {
+  background: var(--gold);
+  color: #000;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.4px;
+}
+.header-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 2px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.tab-bar::-webkit-scrollbar { height: 3px; }
+.tab-bar::-webkit-scrollbar-track { background: var(--bg-nav); }
+.tab-bar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+  position: relative;
+  top: 1px;
+}
+.tab-btn:hover { color: var(--text); border-bottom-color: var(--border2); }
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: var(--gold-dim);
+}
+.tab-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+.tab-btn.active .tab-num {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+
+/* ── IFRAME CONTAINER ── */
+.frame-wrap {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.lab-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+}
+.lab-frame.active { display: block; }
+
+/* ── LAYOUT ── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="ucf-badge">UCF</div>
+    <div>
+      <div class="header-title">SPA 3011 — Speech Science</div>
+      <div class="header-sub">Interactive Study Guide</div>
+    </div>
+  </header>
+
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" onclick="switchTab(0)"><span class="tab-num">1</span>Waves &amp; Frequency</button>
+    <button class="tab-btn"        onclick="switchTab(1)"><span class="tab-num">2</span>Boyle's Law</button>
+    <button class="tab-btn"        onclick="switchTab(2)"><span class="tab-num">3</span>Fundamental Source</button>
+    <button class="tab-btn"        onclick="switchTab(3)"><span class="tab-num">4</span>Source-Filter</button>
+    <button class="tab-btn"        onclick="switchTab(4)"><span class="tab-num">5</span>Consonants &amp; VOT</button>
+    <button class="tab-btn"        onclick="switchTab(5)"><span class="tab-num">6</span>Prosody &amp; Intonation</button>
+    <button class="tab-btn"        onclick="switchTab(6)"><span class="tab-num">7</span>Energy Transfer</button>
+    <button class="tab-btn"        onclick="switchTab(7)"><span class="tab-num">8</span>Electrical Energy</button>
+    <button class="tab-btn"        onclick="switchTab(8)"><span class="tab-num">9</span>Quantification</button>
+  </div>
+
+  <div class="frame-wrap">
+    <iframe class="lab-frame active" id="frame-0" src="lab_wave_frequency.html"    title="Waves & Frequency"></iframe>
+    <iframe class="lab-frame"        id="frame-1" src="lab_boyles.html"             title="Boyle's Law"></iframe>
+    <iframe class="lab-frame"        id="frame-2" src="lab_fundamental_source.html" title="Fundamental Source"></iframe>
+    <iframe class="lab-frame"        id="frame-3" src="lab_source_filter.html"      title="Source-Filter"></iframe>
+    <iframe class="lab-frame"        id="frame-4" src="lab_consonants.html"         title="Consonants & VOT"></iframe>
+    <iframe class="lab-frame"        id="frame-5" src="lab_prosody_intonation.html" title="Prosody & Intonation"></iframe>
+    <iframe class="lab-frame"        id="frame-6" src="lab_transfers_energy.html"   title="Energy Transfer"></iframe>
+    <iframe class="lab-frame"        id="frame-7" src="lab_electrical_energy.html"  title="Electrical Energy"></iframe>
+    <iframe class="lab-frame"        id="frame-8" src="lab_quantification.html"     title="Quantification"></iframe>
+  </div>
+
+</div>
+
+<script>
+  const tabs   = document.querySelectorAll('.tab-btn');
+  const frames = document.querySelectorAll('.lab-frame');
+
+  function switchTab(idx) {
+    tabs.forEach((t, i)   => t.classList.toggle('active',   i === idx));
+    frames.forEach((f, i) => f.classList.toggle('active',   i === idx));
+  }
+
+  // Lazy-load: only set src when tab is first clicked
+  // (frame-0 is pre-loaded via the src attribute above)
+  const loaded = new Set([0]);
+  tabs.forEach((btn, idx) => {
+    btn.addEventListener('click', () => {
+      if (!loaded.has(idx)) {
+        // src already set in HTML, iframe loads on demand when made visible
+        loaded.add(idx);
+      }
+    });
+  });
+</script>
+</body>
+</html>
