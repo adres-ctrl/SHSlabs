@@ -44,6 +44,7 @@
     font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;
     min-width:38px;text-align:center;line-height:1.2;width:100%;}
   .c-btn .c-word{font-size:10px;font-weight:400;display:block;margin-top:1px;opacity:0.55;}
+  .c-btn .c-voi{font-size:9px;font-weight:700;display:block;line-height:1;margin-bottom:2px;letter-spacing:0.3px;text-transform:uppercase;}
   .c-btn:hover{transform:translateY(-1px);}
   .c-btn.active{transform:translateY(-1px);}
   .voiced-row{border-top:1px solid #162135;padding-top:3px;margin-top:2px;}
@@ -170,14 +171,14 @@
 ════════════ */
 // 5 X-mark positions from image
 const poaDots = {
-  bilabial:     {px:0.207, py:0.442},
-  labiodental:  {px:0.279, py:0.428},
-  dental:       {px:0.279, py:0.428},
-  alveolar:     {px:0.342, py:0.358},
-  postalveolar: {px:0.342, py:0.358},
-  palatal:      {px:0.342, py:0.358},
-  velar:        {px:0.636, py:0.349},
-  glottal:      {px:0.709, py:0.891},
+  bilabial:     {px:0.205, py:0.420},
+  labiodental:  {px:0.235, py:0.450},
+  dental:       {px:0.290, py:0.430},
+  alveolar:     {px:0.360, py:0.388},
+  postalveolar: {px:0.440, py:0.380},
+  palatal:      {px:0.560, py:0.378},
+  velar:        {px:0.700, py:0.388},
+  glottal:      {px:0.695, py:0.800},
 };
 
 const placeLabels = {
@@ -186,6 +187,8 @@ const placeLabels = {
   velar:'Velar', glottal:'Glottal'
 };
 const placeOrder = ['bilabial','labiodental','dental','alveolar','postalveolar','palatal','velar','glottal'];
+const mannerOrder = ['stop','nasal','fricative','affricate','liquid','glide'];
+const mannerLabels = {stop:'Stop', nasal:'Nasal', fricative:'Fricative', affricate:'Affricate', liquid:'Liquid', glide:'Glide'};
 
 const mannerCol = {
   stop:'#ff6060', fricative:'#ff9900', affricate:'#a78bfa',
@@ -236,55 +239,50 @@ function sr(s){const x=Math.sin(s+1)*43758.5453;return x-Math.floor(x);}
 function buildGrid(){
   const tbl = document.getElementById('poaTable');
 
-  // Header row
+  // Header row: corner + place labels (anterior → posterior)
   const hdr = document.createElement('tr');
-  hdr.innerHTML = '<th></th>'; // voicing column label
+  hdr.innerHTML = '<th></th>';
   placeOrder.forEach(p=>{
     hdr.innerHTML += '<th>'+placeLabels[p]+'</th>';
   });
   tbl.appendChild(hdr);
 
-  // Voiceless row
-  const vlRow = document.createElement('tr');
-  vlRow.innerHTML = '<td class="row-hdr" style="color:#ff6060;">Voiceless</td>';
-  placeOrder.forEach(p=>{
-    const td = document.createElement('td');
-    const cs = consonants.filter(c=>c.place===p&&!c.voiced);
-    cs.forEach(c=>{
-      const btn = document.createElement('button');
-      btn.className='c-btn';
-      btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
-      btn.style.borderColor=mannerCol[c.manner]+'55';
-      btn.style.color=mannerCol[c.manner];
-      const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
-      btn.textContent=c.ipa;btn.appendChild(span);
-      btn.onclick=()=>selectC(c);
-      td.appendChild(btn);
-    });
-    vlRow.appendChild(td);
-  });
-  tbl.appendChild(vlRow);
+  // One row per manner
+  mannerOrder.forEach(m=>{
+    const row = document.createElement('tr');
+    const mc = mannerCol[m];
+    const rh = document.createElement('td');
+    rh.className='row-hdr';
+    rh.style.color=mc;
+    rh.textContent=mannerLabels[m];
+    row.appendChild(rh);
 
-  // Voiced row
-  const vdRow = document.createElement('tr');
-  vdRow.innerHTML = '<td class="row-hdr" style="color:#4a9eff;">Voiced</td>';
-  placeOrder.forEach(p=>{
-    const td = document.createElement('td');
-    const cs = consonants.filter(c=>c.place===p&&c.voiced);
-    cs.forEach(c=>{
-      const btn = document.createElement('button');
-      btn.className='c-btn';
-      btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
-      btn.style.borderColor=mannerCol[c.manner]+'55';
-      btn.style.color=mannerCol[c.manner];
-      const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
-      btn.textContent=c.ipa;btn.appendChild(span);
-      btn.onclick=()=>selectC(c);
-      td.appendChild(btn);
+    placeOrder.forEach(p=>{
+      const td = document.createElement('td');
+      // voiced first (top), then voiceless (bottom)
+      const cs = consonants.filter(c=>c.place===p && c.manner===m);
+      cs.sort((a,b)=> (a.voiced===b.voiced) ? 0 : (a.voiced ? -1 : 1));
+      cs.forEach(c=>{
+        const btn = document.createElement('button');
+        btn.className='c-btn';
+        btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
+        btn.style.borderColor=mannerCol[c.manner]+'55';
+        btn.style.color=mannerCol[c.manner];
+        const voi=document.createElement('span');
+        voi.className='c-voi';
+        voi.textContent=c.voiced?'voiced':'voiceless';
+        voi.style.color=c.voiced?'#4a9eff':'#ff6060';
+        const sym=document.createElement('span');
+        sym.textContent=c.ipa;
+        const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
+        btn.appendChild(voi);btn.appendChild(sym);btn.appendChild(span);
+        btn.onclick=()=>selectC(c);
+        td.appendChild(btn);
+      });
+      row.appendChild(td);
     });
-    vdRow.appendChild(td);
+    tbl.appendChild(row);
   });
-  tbl.appendChild(vdRow);
 
   // Legend
   const legRow = document.createElement('tr');
@@ -304,27 +302,29 @@ function buildGrid(){
    AIRFLOW PATH
 ════════════ */
 // Waypoints through vocal tract [x_frac, y_frac]
-// Path goes: subglottis → glottis → up pharynx → into oral cavity → out lips
+// Path follows the OPEN AIRWAY: glottis → up pharynx (back wall) → over the
+// tongue through the oral cavity channel → out the lips
 const tractWaypoints = [
-  [0.709, 0.950],  // 0: subglottis entry
-  [0.709, 0.891],  // 1: glottis
-  [0.735, 0.720],  // 2: lower pharynx
-  [0.755, 0.550],  // 3: mid pharynx
-  [0.730, 0.420],  // 4: upper pharynx / oral junction (near velum)
-  [0.620, 0.375],  // 5: posterior oral
-  [0.490, 0.365],  // 6: mid oral
-  [0.340, 0.370],  // 7: anterior oral
-  [0.207, 0.400],  // 8: lips exit
+  [0.690, 0.860],  // 0: glottis / larynx
+  [0.700, 0.790],  // 1: just above glottis
+  [0.730, 0.660],  // 2: lower pharynx
+  [0.760, 0.520],  // 3: mid pharynx (back wall)
+  [0.770, 0.430],  // 4: upper pharynx behind velum
+  [0.700, 0.388],  // 5: velar region (soft palate)
+  [0.560, 0.378],  // 6: palatal (hard palate)
+  [0.420, 0.380],  // 7: alveolar (behind ridge)
+  [0.300, 0.395],  // 8: dental (behind teeth)
+  [0.215, 0.418],  // 9: lips exit
 ];
 
-// Nasal diversion from waypoint 4 upward through nasal cavity
+// Nasal diversion from velum (waypoint 5) up behind soft palate and out the nostril
 const nasalWaypoints = [
-  [0.730, 0.420],  // junction point
-  [0.650, 0.320],  // through velum
-  [0.520, 0.230],  // nasal cavity posterior
-  [0.360, 0.160],  // nasal cavity mid
-  [0.210, 0.090],  // nasal cavity anterior
-  [0.150, 0.030],  // nose exit
+  [0.700, 0.388],  // velum junction (matches tract waypoint 5)
+  [0.660, 0.300],  // rising behind soft palate
+  [0.620, 0.230],  // into nasal cavity
+  [0.450, 0.200],  // nasal cavity mid
+  [0.280, 0.230],  // nasal cavity anterior
+  [0.140, 0.290],  // nostril exit
 ];
 
 // Cumulative distances along path
@@ -353,16 +353,16 @@ function getPointOnPath(wps, lens, total, t){
   return wps[wps.length-1];
 }
 
-// t parameter where each POA sits on the tract path
+// t parameter where each POA sits on the tract path (0=glottis, 1=lips)
 const poaT = {
-  glottal:      0.12,
-  velar:        0.40,
-  palatal:      0.52,
-  postalveolar: 0.58,
-  alveolar:     0.65,
-  dental:       0.78,
-  labiodental:  0.82,
-  bilabial:     0.90,
+  glottal:      0.08,
+  velar:        0.52,
+  palatal:      0.62,
+  postalveolar: 0.68,
+  alveolar:     0.74,
+  dental:       0.82,
+  labiodental:  0.88,
+  bilabial:     0.96,
 };
 
 /* ════════════
@@ -476,18 +476,17 @@ function drawOverlay(c,t){
       }
     }
   } else if(isNasal){
-    // Laminar flow up to oral closure at POA, then divert into nasal cavity
+    // Laminar flow up to oral closure, then divert into nasal cavity at velum
     for(let i=0;i<nDots+2;i++){
       const prog=((i/(nDots+2))+speed)%1;
-      if(prog < 0.45){
-        // Up through pharynx to velum junction
-        const tractT=(prog/0.45)*0.45; // maps 0-0.45 progress to 0-0.45 of tract
-        const [px,py]=getPointOnPath(tractWaypoints,tractLens,totalLen,tractT);
+      if(prog < 0.52){
+        // Up through pharynx to velum junction (tract fraction 0 to 0.52)
+        const [px,py]=getPointOnPath(tractWaypoints,tractLens,totalLen,prog);
         ctx.beginPath();ctx.arc(px*W,py*H,2.4,0,Math.PI*2);
         ctx.fillStyle='rgba(45,212,191,0.75)';ctx.fill();
       } else {
         // Through nasal cavity
-        const nasalT=(prog-0.45)/0.55;
+        const nasalT=(prog-0.52)/0.48;
         const [px,py]=getPointOnPath(nasalWaypoints,nasalLens,nasalTotal,Math.min(1,nasalT));
         ctx.beginPath();ctx.arc(px*W,py*H,2.2,0,Math.PI*2);
         ctx.fillStyle='rgba(45,212,191,0.70)';ctx.fill();
