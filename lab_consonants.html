@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:"Exo 2","Segoe UI",sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px;}
+  body{font-family:"Exo 2","Segoe UI",sans-serif;background:#0f2038;color:#dce7f5;min-width:600px;padding:20px 24px;}
   .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
   .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
   .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
@@ -38,17 +38,15 @@
     padding:6px 4px;text-align:center;background:#060c18;
     border:1px solid #162135;border-radius:5px;}
   .voicing-section{display:flex;flex-direction:column;gap:3px;padding:2px;}
-  .c-btn{display:inline-flex;flex-direction:row;align-items:baseline;justify-content:center;gap:4px;
+  .c-btn{display:inline-flex;flex-direction:column;align-items:center;
     padding:5px 6px;border-radius:6px;border:1px solid transparent;
     background:transparent;font-family:"Exo 2",sans-serif;
     font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;
     min-width:38px;text-align:center;line-height:1.2;width:100%;}
-  .c-btn .c-word{font-size:10px;font-weight:400;opacity:0.55;}
+  .c-btn .c-word{font-size:10px;font-weight:400;display:block;margin-top:1px;opacity:0.55;}
   .c-btn:hover{transform:translateY(-1px);}
   .c-btn.active{transform:translateY(-1px);}
   .voiced-row{border-top:1px solid #162135;padding-top:3px;margin-top:2px;}
-  .voice-ind-td{min-width:24px!important;}
-  .voice-ind{font-family:"Exo 2",sans-serif;font-size:15px;font-weight:800;display:block;text-align:center;}
 
   /* Info panel */
   .info-panel{background:#060c18;border:1px solid #162135;border-radius:8px;padding:12px;min-height:72px;margin-top:10px;}
@@ -74,12 +72,11 @@
   .chip{flex:1;min-width:80px;text-align:center;background:#060c18;border:1px solid #162135;border-radius:8px;padding:8px 10px;}
   .chip .cl{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#8eb4d4;margin-bottom:3px;}
   .chip .cv{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;transition:color .25s;}
-  .voticing-box{display:flex;gap:8px;margin-bottom:14px;}
-  .voticing-side{flex:1;text-align:center;background:#060c18;border:1px solid #162135;border-radius:8px;
-    padding:10px 8px;opacity:0.4;transition:opacity 0.2s,border-color 0.2s;}
-  .voticing-side.active{opacity:1;}
-  .voticing-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
-  .voticing-ipas{display:flex;justify-content:center;gap:10px;font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:600;}
+  .tog-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .tog-btn{flex:1;padding:10px;border-radius:8px;border:1px solid #162135;background:#060c18;
+    color:#8eb4d4;font-family:"Exo 2",sans-serif;font-size:13px;font-weight:700;
+    cursor:pointer;transition:all 0.15s;text-align:center;text-transform:uppercase;letter-spacing:0.5px;}
+  .tog-btn.active{border-color:#FFC904;color:#FFC904;background:rgba(255,201,4,0.08);}
   .vot-note{background:rgba(255,201,4,0.07);border:1px solid rgba(255,201,4,0.3);border-radius:8px;
     padding:10px 14px;font-size:13px;color:rgba(255,201,4,0.85);margin-bottom:14px;line-height:1.6;}
   .desc-box{font-size:13px;color:#8eb4d4;line-height:1.6;padding:10px 12px;background:#060c18;
@@ -131,36 +128,28 @@
 <div class="section-title">Voice Onset Time (VOT)</div>
 <div class="vot-note">⚠️ VOT applies specifically to CV syllables where the consonant is a stop (/p, t, k, b, d, g/). It describes the time between the stop release burst and the onset of voicing for the following vowel.</div>
 <div class="card">
-  <div class="voticing-box" id="voticingBox">
-    <div class="voticing-side" id="voicedSide">
-      <div class="voticing-label" style="color:#4a9eff;">Voiced</div>
-      <div class="voticing-ipas">
-        <span>/b/</span><span>/d/</span><span>/g/</span>
-      </div>
-    </div>
-    <div class="voticing-side" id="voicelessSide">
-      <div class="voticing-label" style="color:#ff6060;">Voiceless</div>
-      <div class="voticing-ipas">
-        <span>/p/</span><span>/t/</span><span>/k/</span>
-      </div>
-    </div>
+  <div class="tog-row">
+    <button class="tog-btn active" id="btnPB" onclick="setStopPair('pb')">p / b — Bilabial</button>
+    <button class="tog-btn" id="btnTD" onclick="setStopPair('td')">t / d — Alveolar</button>
+    <button class="tog-btn" id="btnKG" onclick="setStopPair('kg')">k / g — Velar</button>
   </div>
   <div class="two-col">
     <div>
       <div class="slider-block">
         <div class="slider-top">
           <span class="slider-name">VOT Duration</span>
-          <span class="slider-val" id="votLabel" style="color:#FFC904;">29 ms</span>
+          <span class="slider-val" id="votLabel" style="color:#FFC904;">30 ms</span>
         </div>
         <div class="slider-hint">Drag to change the gap between burst and voicing onset</div>
         <div class="slider-row">
           <span class="slider-ends">0 ms</span>
-          <input type="range" id="votSlider" min="0" max="80" value="29" step="1" oninput="onVotSlide()">
+          <input type="range" id="votSlider" min="0" max="80" value="30" step="1" oninput="updateVOT()">
           <span class="slider-ends">80 ms</span>
         </div>
       </div>
       <div class="chip-row">
-        <div class="chip"><div class="cl">VOT</div><div class="cv" id="votOut" style="color:#FFC904;">29 ms</div></div>
+        <div class="chip"><div class="cl">VOT</div><div class="cv" id="votOut" style="color:#FFC904;">30 ms</div></div>
+        <div class="chip"><div class="cl">Perceived as</div><div class="cv" id="votPerc" style="color:#FFC904;font-size:13px;">Boundary</div></div>
       </div>
       <div class="desc-box" id="votDesc"></div>
     </div>
@@ -244,98 +233,63 @@ function sr(s){const x=Math.sin(s+1)*43758.5453;return x-Math.floor(x);}
 /* ════════════
    BUILD GRID
 ════════════ */
-function makeConsonantBtn(c){
-  const btn = document.createElement('button');
-  btn.className='c-btn';
-  btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
-  btn.style.borderColor=mannerCol[c.manner]+'55';
-  btn.style.color=mannerCol[c.manner];
-  const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
-  btn.textContent=c.ipa;btn.appendChild(span);
-  btn.onclick=()=>selectC(c);
-  return btn;
-}
-
 function buildGrid(){
   const tbl = document.getElementById('poaTable');
-  const mannerOrder = ['stop','fricative','affricate','nasal','liquid','glide'];
-  const mannerLabels = {stop:'Stop',fricative:'Fricative',affricate:'Affricate',nasal:'Nasal',liquid:'Liquid',glide:'Glide'};
-  // Manners with a voiceless member anywhere in the inventory get the split voiceless/voiced
-  // treatment throughout the row; manners that are voiced-only in English (nasal, liquid, glide)
-  // just get a single voiced indicator/section, since there's nothing to contrast.
-  const hasVoicelessMember = m => consonants.some(c=>c.manner===m&&!c.voiced);
 
   // Header row
   const hdr = document.createElement('tr');
-  hdr.innerHTML = '<th></th><th></th>'; // manner column + voice indicator column
+  hdr.innerHTML = '<th></th>'; // voicing column label
   placeOrder.forEach(p=>{
     hdr.innerHTML += '<th>'+placeLabels[p]+'</th>';
   });
   tbl.appendChild(hdr);
 
-  // Manner rows — place stays as columns; voicing is split within each cell,
-  // with a dedicated indicator column spelling out which half is which per row.
-  mannerOrder.forEach(m=>{
-    const row = document.createElement('tr');
-    row.innerHTML = '<td class="row-hdr" style="color:'+mannerCol[m]+';">'+mannerLabels[m]+'</td>';
-    const splitRow = hasVoicelessMember(m);
-
-    // Voice indicator column
-    const vTd = document.createElement('td');
-    vTd.className='voice-ind-td';
-    if(splitRow){
-      const vlInd = document.createElement('div');
-      vlInd.className='voicing-section';
-      vlInd.innerHTML='<span class="voice-ind" style="color:#ff6060;text-decoration:line-through;">V</span>';
-      const vdInd = document.createElement('div');
-      vdInd.className='voicing-section voiced-row';
-      vdInd.innerHTML='<span class="voice-ind" style="color:#4a9eff;">V</span>';
-      vTd.appendChild(vlInd);
-      vTd.appendChild(vdInd);
-    } else {
-      const vdInd = document.createElement('div');
-      vdInd.className='voicing-section';
-      vdInd.innerHTML='<span class="voice-ind" style="color:#4a9eff;">V</span>';
-      vTd.appendChild(vdInd);
-    }
-    row.appendChild(vTd);
-
-    placeOrder.forEach(p=>{
-      const td = document.createElement('td');
-      const vless = consonants.filter(c=>c.place===p&&c.manner===m&&!c.voiced);
-      const vd    = consonants.filter(c=>c.place===p&&c.manner===m&&c.voiced);
-      if(splitRow){
-        // Keep the split structure even when this specific cell only has one
-        // voicing — the empty half stays empty, so position still lines up
-        // with the row's voice-indicator column (top=voiceless, bottom=voiced).
-        if(vless.length){
-          const vlSec = document.createElement('div');
-          vlSec.className='voicing-section';
-          vless.forEach(c=>vlSec.appendChild(makeConsonantBtn(c)));
-          td.appendChild(vlSec);
-        }
-        if(vd.length){
-          const vdSec = document.createElement('div');
-          vdSec.className='voicing-section'+(vless.length?' voiced-row':'');
-          vd.forEach(c=>vdSec.appendChild(makeConsonantBtn(c)));
-          td.appendChild(vdSec);
-        }
-      } else if(vd.length){
-        const sec = document.createElement('div');
-        sec.className='voicing-section';
-        vd.forEach(c=>sec.appendChild(makeConsonantBtn(c)));
-        td.appendChild(sec);
-      }
-      // else: no consonant for this place+manner combo — cell stays blank
-      row.appendChild(td);
+  // Voiceless row
+  const vlRow = document.createElement('tr');
+  vlRow.innerHTML = '<td class="row-hdr" style="color:#ff6060;">Voiceless</td>';
+  placeOrder.forEach(p=>{
+    const td = document.createElement('td');
+    const cs = consonants.filter(c=>c.place===p&&!c.voiced);
+    cs.forEach(c=>{
+      const btn = document.createElement('button');
+      btn.className='c-btn';
+      btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
+      btn.style.borderColor=mannerCol[c.manner]+'55';
+      btn.style.color=mannerCol[c.manner];
+      const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
+      btn.textContent=c.ipa;btn.appendChild(span);
+      btn.onclick=()=>selectC(c);
+      td.appendChild(btn);
     });
-    tbl.appendChild(row);
+    vlRow.appendChild(td);
   });
+  tbl.appendChild(vlRow);
+
+  // Voiced row
+  const vdRow = document.createElement('tr');
+  vdRow.innerHTML = '<td class="row-hdr" style="color:#4a9eff;">Voiced</td>';
+  placeOrder.forEach(p=>{
+    const td = document.createElement('td');
+    const cs = consonants.filter(c=>c.place===p&&c.voiced);
+    cs.forEach(c=>{
+      const btn = document.createElement('button');
+      btn.className='c-btn';
+      btn.id='cb'+c.ipa.replace(/[^\w]/g,'X');
+      btn.style.borderColor=mannerCol[c.manner]+'55';
+      btn.style.color=mannerCol[c.manner];
+      const span=document.createElement('span');span.className='c-word';span.textContent=c.word;
+      btn.textContent=c.ipa;btn.appendChild(span);
+      btn.onclick=()=>selectC(c);
+      td.appendChild(btn);
+    });
+    vdRow.appendChild(td);
+  });
+  tbl.appendChild(vdRow);
 
   // Legend
   const legRow = document.createElement('tr');
   const legTd = document.createElement('td');
-  legTd.colSpan=10;
+  legTd.colSpan=9;
   legTd.style.cssText='padding:6px 4px 0;border:none;background:transparent;';
   legTd.innerHTML = Object.entries(mannerCol).map(([m,c])=>
     '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:'+c+';">'+
@@ -429,8 +383,8 @@ function selectC(c){
     '<div class="ip-ipa" style="color:'+mc+';">'+c.ipa+'</div>'+
     '<div class="ip-row">'+
     '<span class="ip-tag" style="background:'+vc+'22;color:'+vc+';border:1px solid '+vc+'55;">'+(c.voiced?'Voiced':'Voiceless')+'</span>'+
-    '<span class="ip-tag" style="background:rgba(142,180,212,0.1);color:#8eb4d4;border:1px solid rgba(142,180,212,0.3);">'+plI+'</span>'+
     '<span class="ip-tag" style="background:'+mc+'22;color:'+mc+';border:1px solid '+mc+'55;">'+c.manner.charAt(0).toUpperCase()+c.manner.slice(1)+'</span>'+
+    '<span class="ip-tag" style="background:rgba(142,180,212,0.1);color:#8eb4d4;border:1px solid rgba(142,180,212,0.3);">'+plI+'</span>'+
     '</div>'+
     '<div class="ip-desc"><strong style="color:#dce7f5;">Example:</strong> "'+c.word+'"</div>'+
     '<div class="ip-desc" style="margin-top:4px;">'+c.desc+'</div>';
@@ -574,38 +528,32 @@ function drawOverlay(c,t){
 /* ════════════
    VOT
 ════════════ */
-let lastVot=29;
+let selPair='pb';
+const stopPairs={pb:{vless:'/p/',vcd:'/b/'},td:{vless:'/t/',vcd:'/d/'},kg:{vless:'/k/',vcd:'/g/'}};
 
-function onVotSlide(){
-  const slider=document.getElementById('votSlider');
-  let vot=parseInt(slider.value);
-  if(vot===30){
-    vot=(vot>lastVot)?31:29; // skip over the boundary in the direction of travel
-    slider.value=vot;
-  }
-  lastVot=vot;
+function setStopPair(key){
+  selPair=key;
+  ['btnPB','btnTD','btnKG'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('btn'+key.toUpperCase()).classList.add('active');
   updateVOT();
 }
 
 function updateVOT(){
   const vot=parseInt(document.getElementById('votSlider').value);
+  const pair=stopPairs[selPair];
   document.getElementById('votLabel').textContent=vot+' ms';
   document.getElementById('votOut').textContent=vot+' ms';
-  const isVoiced=vot<30;
-  const percCol=isVoiced?'#4a9eff':'#ff6060';
-  document.getElementById('votLabel').style.color=percCol;
-  document.getElementById('votOut').style.color=percCol;
-  const voicedSide=document.getElementById('voicedSide');
-  const voicelessSide=document.getElementById('voicelessSide');
-  voicedSide.classList.toggle('active',isVoiced);
-  voicelessSide.classList.toggle('active',!isVoiced);
-  voicedSide.style.borderColor=isVoiced?'#4a9eff':'#162135';
-  voicelessSide.style.borderColor=!isVoiced?'#ff6060':'#162135';
+  const isVoiced=vot<29, isBoundary=(vot>=29&&vot<=31);
+  const perc=isBoundary?'Boundary (~30ms)':isVoiced?'Voiced — '+pair.vcd:'Voiceless — '+pair.vless;
+  const percCol=isBoundary?'#FFC904':isVoiced?'#4a9eff':'#ff6060';
+  document.getElementById('votPerc').textContent=perc;
+  document.getElementById('votPerc').style.color=percCol;
   const desc=vot===0?'Zero VOT — voicing begins at the burst. Strongly voiced across languages.':
-             vot<15?'Short VOT ('+vot+'ms) — voicing closely follows burst. Clearly perceived as voiced.':
-             vot<30?'Moderate VOT ('+vot+'ms) — within the voiced range for English. Perceived as voiced.':
-             vot<50?'VOT of '+vot+'ms — above the categorical boundary. Perceived as voiceless in English.':
-                    'Long VOT ('+vot+'ms) — strongly voiceless, clearly distinguished from a voiced stop.';
+             vot<15?'Short VOT ('+vot+'ms) — voicing closely follows burst. Clearly perceived as voiced '+pair.vcd+'.':
+             vot<29?'Moderate VOT ('+vot+'ms) — within the voiced range for English. Perceived as '+pair.vcd+'.':
+             vot<=31?'VOT at the ~30ms boundary — perceptual category transition. Listener perception is ambiguous.':
+             vot<50?'VOT of '+vot+'ms — above the boundary. Perceived as voiceless '+pair.vless+' in English.':
+                    'Long VOT ('+vot+'ms) — strongly voiceless. '+pair.vless+' clearly distinguished from '+pair.vcd+'.';
   document.getElementById('votDesc').textContent=desc;
   drawVOTCurve(vot);
 }
@@ -614,7 +562,7 @@ function drawVOTCurve(vot){
   const{ctx,W,H}=gCtx('votCurveCanvas');
   if(!ctx) return;
   ctx.clearRect(0,0,W,H);ctx.fillStyle='#060c18';ctx.fillRect(0,0,W,H);
-  const padL=18,padR=18,padT=22,padB=40;
+  const padL=18,padR=18,padT=22,padB=26;
   const cW=W-padL-padR,cH=H-padT-padB;
   const bx=padL+(30/80)*cW;
   const g1=ctx.createLinearGradient(padL,0,bx,0);
@@ -642,19 +590,10 @@ function drawVOTCurve(vot){
   const cx2=padL+(vot/80)*cW;
   const pVl=1/(1+Math.exp(-0.45*(vot-30)));
   const mY=padT+cH*(1-pVl);
-  const mCol=vot<30?'#4a9eff':'#ff6060';
+  const mCol=vot<29?'#4a9eff':vot>31?'#ff6060':'#FFC904';
   ctx.beginPath();ctx.arc(cx2,mY,6,0,Math.PI*2);
   ctx.fillStyle=mCol;ctx.fill();
   ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
-  ctx.font='10px Exo 2';
-  ctx.fillStyle='rgba(255,255,255,0.7)';
-  const labelBelow=mY<(padT+cH/2);
-  const labelY=labelBelow?mY+16:mY-10;
-  let lblAlign='center',lblX=cx2;
-  if(cx2<padL+45){lblAlign='left';lblX=padL;}
-  else if(cx2>padL+cW-45){lblAlign='right';lblX=padL+cW;}
-  ctx.textAlign=lblAlign;
-  ctx.fillText('Start of vowel',lblX,labelY);
   ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='None12px IBM Plex Mono';
   ctx.textAlign='left';ctx.fillText('0ms',padL,padT+cH+16);
   ctx.textAlign='center';ctx.fillText('40ms',padL+cW*0.5,padT+cH+16);
@@ -662,8 +601,6 @@ function drawVOTCurve(vot){
   ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='None12px Exo 2';
   ctx.textAlign='left';ctx.fillText('voiced',padL,padT+cH);
   ctx.textAlign='right';ctx.fillText('voiceless',padL+cW,padT+5);
-  ctx.font='9px Exo 2';ctx.fillStyle='rgba(255,255,255,0.35)';
-  ctx.textAlign='left';ctx.fillText('Burst of consonant',padL,padT+cH+30);
 }
 
 /* ════════════
@@ -680,7 +617,7 @@ window.addEventListener('load',()=>{
       const vc=document.getElementById('votCurveCanvas');
       if(vc){const dpr=window.devicePixelRatio||1;const W=vc.parentElement.offsetWidth;
         vc.width=Math.round(W*dpr);vc.height=Math.round(180*dpr);vc.style.height='180px';}
-      drawVOTCurve(parseInt(document.getElementById('votSlider').value));
+      drawVOTCurve(30);
     };
     if(img.complete) doInit(); else img.onload=doInit;
   },80);

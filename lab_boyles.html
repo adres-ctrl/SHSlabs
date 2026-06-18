@@ -9,7 +9,7 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Exo 2', 'Segoe UI', sans-serif;
-    background: #060c1a;
+    background: #0f2038;
     color: #dce7f5;
     min-width: 600px;
     padding: 20px 24px 20px;
@@ -196,127 +196,78 @@
 <div class="section-title">Open System — The Lungs</div>
 <div class="section-note">The lungs are an <em>open</em> system — air flows freely between the lungs and the atmosphere. When lung volume changes, pressure shifts above or below atmospheric pressure (Patm), and air flows along that gradient. The key reference point is always Patm = 0.</div>
 
-<!-- Animation Showcase -->
 <div class="card">
-  <div class="card-title">🔄 Full Breathing Cycle — Animation</div>
-  <div style="display:flex; gap:12px; align-items:center; margin-bottom:14px;">
-    <button id="animBtn" onclick="toggleLungAnim()"
-      style="padding:10px 20px; border-radius:8px; border:1px solid #2dd4bf;
-             background:rgba(45,212,191,0.08); color:#2dd4bf; font-family:'Exo 2',sans-serif;
-             font-size:13px; font-weight:700; cursor:pointer; letter-spacing:0.5px;">
-      ▶ Animate Breathing Cycle
-    </button>
-    <span style="color:#8eb4d4; font-size:13px;">Observe how volume, pressure, and airflow evolve across the full cycle. Pressure is zero at both apex points.</span>
-  </div>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-    <div class="vis-wrap">
-      <div class="vis-lbl">🫁 Lung volume (animated)</div>
-      <canvas id="animShapeCanvas" width="300" height="130" style="width:100%;"></canvas>
-    </div>
-    <div class="vis-wrap">
-      <div class="vis-lbl">📈 Volume &amp; Pressure over time — pressure = 0 at cycle peaks</div>
-      <canvas id="lungPlotCanvas" width="300" height="130" style="width:100%;"></canvas>
-    </div>
-  </div>
-</div>
-
-<!-- Two-slider manual exploration -->
-<div class="card" style="margin-top:14px;">
-  <div class="card-title">🎛 Manual Exploration — Inhalation &amp; Exhalation</div>
   <div class="two-col">
-
-    <!-- INHALATION -->
     <div>
-      <div style="font-size:13px; font-weight:700; color:#4a9eff; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">↓ Inhalation Phase</div>
-      <div class="slider-block">
+      <!-- Animate / Manual toggle -->
+      <div style="display:flex; gap:10px; margin-bottom:14px;">
+        <button id="animBtn" onclick="toggleLungAnim()"
+          style="flex:1; padding:10px; border-radius:8px; border:1px solid #2dd4bf;
+                 background:rgba(45,212,191,0.08); color:#2dd4bf; font-family:'Exo 2',sans-serif;
+                 font-size:13px; font-weight:700; cursor:pointer; letter-spacing:0.5px;">
+          ▶ Animate Breathing Cycle
+        </button>
+        <button onclick="resetLungManual()"
+          style="padding:10px 16px; border-radius:8px; border:1px solid #162135;
+                 background:#060c18; color:#8eb4d4; font-family:'Exo 2',sans-serif;
+                 font-size:13px; font-weight:700; cursor:pointer;">
+          Manual
+        </button>
+      </div>
+
+      <div class="slider-block" id="lungSliderWrap">
         <div class="slider-top">
-          <span class="slider-name">Inhalation Progress</span>
-          <span class="slider-val" id="inhaleVolLabel" style="color:#4a9eff;">0%</span>
+          <span class="slider-name">Lung Volume</span>
+          <span class="slider-val" id="lungVolLabel" style="color:#4a9eff;">50%</span>
         </div>
-        <div class="slider-hint">Drag from REL → apex. Pressure dips negative, returns to zero at peak.</div>
+        <div class="slider-hint">Drag to simulate inhalation (expand) or exhalation (contract)</div>
         <div class="slider-row">
-          <span class="slider-ends">REL</span>
-          <input type="range" class="blue-thumb" id="inhaleSlider" min="0" max="1" value="0" step="0.01" oninput="updateInhale(parseFloat(this.value))">
-          <span class="slider-ends">Peak Inhale</span>
+          <span class="slider-ends">Exhale (small)</span>
+          <input type="range" class="teal-thumb" id="lungSlider" min="1" max="10" value="5" step="0.1" oninput="updateLung(parseFloat(this.value))">
+          <span class="slider-ends">Inhale (large)</span>
         </div>
       </div>
+
       <div class="readout-row">
         <div class="readout-chip">
           <div class="rc-label">Lung Volume</div>
-          <div class="rc-val" id="inhaleV" style="color:#4a9eff;">5.0</div>
+          <div class="rc-val" id="lungV" style="color:#4a9eff;">5.0</div>
         </div>
         <div class="readout-chip">
-          <div class="rc-label">Palv</div>
-          <div class="rc-val" id="inhaleP" style="color:#8eb4d4;">= Patm</div>
-        </div>
-        <div class="readout-chip">
-          <div class="rc-label">Airflow</div>
-          <div class="rc-val" id="inhaleFlow" style="color:#8eb4d4;">None</div>
-        </div>
-      </div>
-      <div style="text-align:center; margin-bottom:10px;">
-        <span class="press-label" id="inhalePressLabel"
-          style="background:rgba(142,180,212,0.1); border:1px solid #8eb4d4; color:#8eb4d4;">
-          Palv = Patm — REL (start of inhale)
-        </span>
-      </div>
-      <div class="vis-wrap">
-        <div class="vis-lbl">📊 Alveolar pressure</div>
-        <canvas id="inhaleBarCanvas" width="300" height="150" style="width:100%;"></canvas>
-      </div>
-      <div class="vis-wrap" style="margin-top:8px;">
-        <div class="vis-lbl">🫁 Lung volume</div>
-        <canvas id="inhaleShapeCanvas" width="300" height="100" style="width:100%;"></canvas>
-      </div>
-      <div class="desc-box" id="inhaleDesc" style="margin-top:8px;">Drag the slider to begin inhalation.</div>
-    </div>
-
-    <!-- EXHALATION -->
-    <div>
-      <div style="font-size:13px; font-weight:700; color:#ff9900; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">↑ Exhalation Phase</div>
-      <div class="slider-block">
-        <div class="slider-top">
-          <span class="slider-name">Exhalation Progress</span>
-          <span class="slider-val" id="exhaleVolLabel" style="color:#ff9900;">0%</span>
-        </div>
-        <div class="slider-hint">Drag from peak inhale → REL. Pressure rises positive, returns to zero at REL.</div>
-        <div class="slider-row">
-          <span class="slider-ends">Peak Inhale</span>
-          <input type="range" class="gold-thumb" id="exhaleSlider" min="0" max="1" value="0" step="0.01" oninput="updateExhale(parseFloat(this.value))">
-          <span class="slider-ends">REL</span>
-        </div>
-      </div>
-      <div class="readout-row">
-        <div class="readout-chip">
-          <div class="rc-label">Lung Volume</div>
-          <div class="rc-val" id="exhaleV" style="color:#ff9900;">8.5</div>
-        </div>
-        <div class="readout-chip">
-          <div class="rc-label">Palv</div>
-          <div class="rc-val" id="exhaleP" style="color:#8eb4d4;">= Patm</div>
+          <div class="rc-label">Lung Pressure</div>
+          <div class="rc-val" id="lungP" style="color:#8eb4d4;">= Patm</div>
         </div>
         <div class="readout-chip">
           <div class="rc-label">Airflow</div>
-          <div class="rc-val" id="exhaleFlow" style="color:#8eb4d4;">None</div>
+          <div class="rc-val" id="lungFlow" style="color:#8eb4d4;">None</div>
         </div>
       </div>
-      <div style="text-align:center; margin-bottom:10px;">
-        <span class="press-label" id="exhalePressLabel"
+
+      <div style="text-align:center; margin-bottom:12px;">
+        <span class="press-label" id="pressLabel"
           style="background:rgba(142,180,212,0.1); border:1px solid #8eb4d4; color:#8eb4d4;">
-          Palv = Patm — Peak Inhale (start of exhale)
+          Palv = Patm — Equilibrium (REL)
         </span>
       </div>
-      <div class="vis-wrap">
-        <div class="vis-lbl">📊 Alveolar pressure</div>
-        <canvas id="exhaleBarCanvas" width="300" height="150" style="width:100%;"></canvas>
-      </div>
-      <div class="vis-wrap" style="margin-top:8px;">
-        <div class="vis-lbl">🫁 Lung volume</div>
-        <canvas id="exhaleShapeCanvas" width="300" height="100" style="width:100%;"></canvas>
-      </div>
-      <div class="desc-box" id="exhaleDesc" style="margin-top:8px;">Drag the slider to begin exhalation.</div>
+
+      <div class="desc-box" id="lungDesc">Move the slider or press Animate to explore the breathing cycle.</div>
     </div>
 
+    <!-- Right: gauge + lung + scrolling plot -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="vis-wrap">
+        <div class="vis-lbl">📊 Lung pressure relative to atmospheric (Patm = 0)</div>
+        <canvas id="lungCanvas" width="300" height="160" style="width:100%;"></canvas>
+      </div>
+      <div class="vis-wrap">
+        <div class="vis-lbl">🫁 Lung volume</div>
+        <canvas id="lungShapeCanvas" width="300" height="110" style="width:100%;"></canvas>
+      </div>
+      <div class="vis-wrap">
+        <div class="vis-lbl">📈 Volume &amp; Pressure over time — pressure = 0 at cycle peaks</div>
+        <canvas id="lungPlotCanvas" width="300" height="110" style="width:100%;"></canvas>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -488,8 +439,8 @@ function calcLungState(t) {
   return { vol, palv };
 }
 
-function drawLungPressureBar(canvasId, palv) {
-  const { ctx, W, H } = getCtx(canvasId);
+function drawLungPressureBar(palv) {
+  const { ctx, W, H } = getCtx('lungCanvas');
   if (!ctx) return;
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
 
@@ -539,8 +490,8 @@ function drawLungPressureBar(canvasId, palv) {
   }
 }
 
-function drawLungShape(canvasId, vol, palv) {
-  const { ctx, W, H } = getCtx(canvasId);
+function drawLungShape(vol, palv) {
+  const { ctx, W, H } = getCtx('lungShapeCanvas');
   if (!ctx) return;
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#060c18'; ctx.fillRect(0,0,W,H);
   const pct=(vol-1)/9, maxR=Math.min(W,H)/2-12, rx=(0.32+pct*0.68)*maxR, ry=rx*0.78, cx=W/2, cy=H/2+2;
@@ -604,19 +555,17 @@ function drawLungPlot() {
   ctx.setLineDash([]);
 }
 
-function renderPhaseState(phase, vol, palv) {
-  const pct = Math.round(((vol - LUNG_REST) / VAMP) * 100);
-  document.getElementById(phase+'VolLabel').textContent = pct+'%';
-  document.getElementById(phase+'V').textContent = vol.toFixed(1);
+function renderLungState(vol, palv) {
+  const pct=Math.round((vol/10)*100);
+  document.getElementById('lungVolLabel').textContent=pct+'%';
+  document.getElementById('lungV').textContent=vol.toFixed(1);
 
-  let pT, fT, pC, fC, lT, lS;
-  if(Math.abs(palv) < 0.08){
+  let pT,fT,pC,fC,lT,lS;
+  if(Math.abs(palv)<0.12){
     pT='= Patm'; fT='None ⚖️'; pC='#8eb4d4'; fC='#8eb4d4';
-    lT = phase==='inhale'
-      ? 'Palv = Patm — REL or Peak Inhale (no airflow)'
-      : 'Palv = Patm — Peak Inhale or REL (no airflow)';
+    lT='Palv = Patm — Equilibrium (no airflow)';
     lS='background:rgba(142,180,212,0.1);border:1px solid #8eb4d4;color:#8eb4d4;';
-  } else if(palv < 0){
+  } else if(palv<0){
     pT='< Patm (−)'; fT='Inward ↓'; pC='#4a9eff'; fC='#4a9eff';
     lT='Palv < Patm — Air flows INTO lungs (Inhalation)';
     lS='background:rgba(74,158,255,0.1);border:1px solid #4a9eff;color:#4a9eff;';
@@ -625,49 +574,36 @@ function renderPhaseState(phase, vol, palv) {
     lT='Palv > Patm — Air flows OUT of lungs (Exhalation)';
     lS='background:rgba(255,153,0,0.1);border:1px solid #ff9900;color:#ff9900;';
   }
-  document.getElementById(phase+'P').textContent = pT;
-  document.getElementById(phase+'P').style.color = pC;
-  document.getElementById(phase+'Flow').textContent = fT;
-  document.getElementById(phase+'Flow').style.color = fC;
-  const pl = document.getElementById(phase+'PressLabel');
-  pl.textContent = lT; pl.style.cssText = lS;
+  document.getElementById('lungP').textContent=pT; document.getElementById('lungP').style.color=pC;
+  document.getElementById('lungFlow').textContent=fT; document.getElementById('lungFlow').style.color=fC;
+  const pl=document.getElementById('pressLabel'); pl.textContent=lT; pl.style.cssText=lS;
 
-  const desc = palv < -0.25
-    ? 'Volume is increasing → Palv drops below Patm → air drawn inward. Pressure only exists because volume is actively changing.'
-    : palv >  0.25
-    ? 'Volume is decreasing → Palv rises above Patm → air pushed outward. Movement drives the pressure change.'
-    : 'Volume is at its peak or at rest — movement has stopped. Palv returns to Patm. No airflow.';
-  const dc = document.getElementById(phase+'Desc');
-  dc.textContent = desc;
-  dc.style.color = Math.abs(palv)<0.12 ? '#8eb4d4' : palv<0 ? '#4a9eff' : '#ff9900';
+  const desc=palv<-0.4?'Volume is increasing → Palv drops below Patm → air drawn inward. Pressure only exists because volume is changing.' :
+             palv>0.4 ?'Volume is decreasing → Palv rises above Patm → air pushed outward. Movement drives the pressure change.' :
+                       'Volume is at its peak or trough — movement has momentarily stopped. Palv returns to Patm. No airflow.';
+  const dc=document.getElementById('lungDesc');
+  dc.textContent=desc; dc.style.color=Math.abs(palv)<0.12?'#8eb4d4':palv<0?'#4a9eff':'#ff9900';
 
-  drawLungPressureBar(phase+'BarCanvas', palv);
-  drawLungShape(phase+'ShapeCanvas', vol, palv);
+  // Push to plot buffer
+  volBuf.shift(); volBuf.push(vol);
+  presBuf.shift(); presBuf.push(palv);
+
+  drawLungPressureBar(palv);
+  drawLungShape(vol, palv);
+  drawLungPlot();
 }
 
-// Inhalation: t=0 (REL) → t=1 (peak inhale)
-// vol increases, pressure dips negative at midpoint, returns to 0 at apex
-function updateInhale(t) {
-  const vol  = LUNG_REST + VAMP * t;
-  const palv = -PAMP * Math.sin(t * Math.PI);
-  renderPhaseState('inhale', vol, palv);
-}
-
-// Exhalation: t=0 (peak inhale) → t=1 (REL)
-// vol decreases, pressure rises positive at midpoint, returns to 0 at REL
-function updateExhale(t) {
-  const vol  = LUNG_REST + VAMP * (1 - t);
-  const palv =  PAMP * Math.sin(t * Math.PI);
-  renderPhaseState('exhale', vol, palv);
+function updateLung(vol) {
+  if(isAnimating) return;
+  const palv = -PAMP * Math.cos(((vol - LUNG_REST)/VAMP) * (Math.PI/2) * 0.97);
+  renderLungState(vol, palv);
 }
 
 function lungAnimLoop() {
   lungT += OMEGA;
   const { vol, palv } = calcLungState(lungT);
-  volBuf.shift();  volBuf.push(vol);
-  presBuf.shift(); presBuf.push(palv);
-  drawLungShape('animShapeCanvas', vol, palv);
-  drawLungPlot();
+  document.getElementById('lungSlider').value = vol;
+  renderLungState(vol, palv);
   lungAnimId = requestAnimationFrame(lungAnimLoop);
 }
 
@@ -678,13 +614,22 @@ function toggleLungAnim() {
     btn.textContent='▶ Animate Breathing Cycle';
     btn.style.borderColor='#2dd4bf'; btn.style.color='#2dd4bf';
     btn.style.background='rgba(45,212,191,0.08)';
+    document.getElementById('lungSliderWrap').style.opacity='1';
   } else {
     isAnimating=true;
     btn.textContent='⏹ Stop';
     btn.style.borderColor='#ff6060'; btn.style.color='#ff6060';
     btn.style.background='rgba(255,96,96,0.08)';
+    document.getElementById('lungSliderWrap').style.opacity='0.35';
     lungAnimLoop();
   }
+}
+
+function resetLungManual() {
+  if(isAnimating) toggleLungAnim();
+  lungT=0;
+  document.getElementById('lungSlider').value=LUNG_REST;
+  updateLung(LUNG_REST);
 }
 
 /* ══════════════════════════════════
@@ -801,23 +746,18 @@ function setPhase(phase) {
 ══════════════════════════════════ */
 window.addEventListener('load', () => {
   setTimeout(() => {
-    ['boylesCanvas','animShapeCanvas','lungPlotCanvas',
-     'inhaleBarCanvas','inhaleShapeCanvas',
-     'exhaleBarCanvas','exhaleShapeCanvas','phaseCanvas'].forEach(initCanvas);
+    ['boylesCanvas','lungCanvas','lungShapeCanvas','lungPlotCanvas','phaseCanvas'].forEach(initCanvas);
     updateBoyles();
-    updateInhale(0);
-    updateExhale(0);
+    renderLungState(LUNG_REST, 0);
     setPhase('rel');
   }, 80);
 });
 
 window.addEventListener('resize', () => {
-  ['boylesCanvas','animShapeCanvas','lungPlotCanvas',
-   'inhaleBarCanvas','inhaleShapeCanvas',
-   'exhaleBarCanvas','exhaleShapeCanvas','phaseCanvas'].forEach(initCanvas);
+  ['boylesCanvas','lungCanvas','lungShapeCanvas','lungPlotCanvas','phaseCanvas'].forEach(initCanvas);
   updateBoyles();
-  updateInhale(parseFloat(document.getElementById('inhaleSlider').value));
-  updateExhale(parseFloat(document.getElementById('exhaleSlider').value));
+  const vol=parseFloat(document.getElementById('lungSlider').value);
+  if(!isAnimating) updateLung(vol);
   if(currentPhase) drawPhaseCanvas(currentPhase);
 });
 </script>
