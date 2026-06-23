@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Exo 2','Segoe UI',sans-serif;background:#0f2038;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
+  body{font-family:'Exo 2','Segoe UI',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
   .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
   .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;flex-shrink:0;}
   .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
@@ -90,7 +90,7 @@
     <span id="stageLabel">Outer Ear</span>
     <span id="energyBadge" class="energy-badge"></span>
   </div>
-  <canvas id="stageCanvas" height="175"></canvas>
+  <canvas id="stageCanvas" height="200"></canvas>
 </div>
 
 <div class="info-card">
@@ -252,11 +252,11 @@ function drawStage(idx){
   const cv=document.getElementById('stageCanvas');
   const dpr=window.devicePixelRatio||1;
   const W=cv.parentElement.offsetWidth||600;
-  cv.width=Math.round(W*dpr); cv.height=Math.round(175*dpr);
-  cv.style.height='175px';
+  cv.width=Math.round(W*dpr); cv.height=Math.round(200*dpr);
+  cv.style.height='200px';
   const c=cv.getContext('2d');
   c.setTransform(dpr,0,0,dpr,0,0);
-  c.clearRect(0,0,W,175);
+  c.clearRect(0,0,W,200);
 
   const col=STAGES[idx].eColor;
 
@@ -392,14 +392,14 @@ function drawMiddleEar(c,W,col){
 /* Stage 2 — Inner Ear */
 function drawInnerEar(c,W,col){
   const mid=80;
-  // Stapes at oval window
+  const tx=75, tw=W-145, th=50;
+  // Stapes at oval window — centered on scala vestibuli
   c.strokeStyle=col; c.lineWidth=2; c.fillStyle='rgba(167,139,250,0.15)';
-  c.beginPath(); c.ellipse(42,mid,10,20,0,0,Math.PI*2); c.fill(); c.stroke();
-  label(c,'Oval Win.',42,mid+32,col,9);
-  arrow(c,54,mid,75,mid,col,2);
+  c.beginPath(); c.ellipse(42,mid-th/4,10,11,0,0,Math.PI*2); c.fill(); c.stroke();
+  label(c,'Oval Win.',42,mid-th/4-16,col,9);
+  arrow(c,54,mid-th/4,tx,mid-th/4,col,2);
 
   // Cochlea — unrolled tube (2 chambers + basilar membrane)
-  const tx=75, tw=W-145, th=50;
   // Scala vestibuli (top)
   box(c,tx,mid-th/2,tw,th/2-1,'rgba(167,139,250,0.6)','rgba(167,139,250,0.08)',0);
   label(c,'Scala Vestibuli  →  perilymph',tx+tw/2,mid-8,`rgba(167,139,250,0.7)`,9);
@@ -419,16 +419,19 @@ function drawInnerEar(c,W,col){
     const fx=tx+i*(tw/5);
     arrow(c,fx+22,mid+16,fx,mid+16,'rgba(167,139,250,0.55)',1.2);
   }
-  // Helicotrema (connection at apex)
-  c.strokeStyle=`rgba(167,139,250,0.5)`; c.lineWidth=2;
-  c.beginPath(); c.arc(tx+tw,mid,24,Math.PI*1.5,Math.PI*0.5,false); c.stroke();
-  label(c,'Apex',tx+tw+8,mid+36,'rgba(167,139,250,0.6)',9);
-  label(c,'Base',tx-4,mid+36,'rgba(167,139,250,0.6)',9);
-  // Round window
+  // Helicotrema — clear right tube walls so tubes visually open into cap
+  c.clearRect(tx+tw-1,mid-th/2-1,4,th+2);
+  c.fillStyle='rgba(167,139,250,0.08)';
+  c.strokeStyle='rgba(167,139,250,0.5)'; c.lineWidth=2;
+  c.beginPath(); c.arc(tx+tw,mid,th/2,Math.PI*1.5,Math.PI*0.5,false);
+  c.fill(); c.stroke();
+  label(c,'Apex',tx+tw+th/2+4,mid,'rgba(167,139,250,0.6)',9,'left');
+  label(c,'Base',tx-4,mid+th/2+16,'rgba(167,139,250,0.6)',9);
+  // Round window — base, exit of scala tympani (left side)
   c.strokeStyle=col; c.lineWidth=2; c.fillStyle='rgba(167,139,250,0.12)';
-  c.beginPath(); c.ellipse(W-42,mid+28,10,16,0,0,Math.PI*2); c.fill(); c.stroke();
-  label(c,'Round Win.',W-42,mid+50,col,9);
-  arrow(c,tx+tw-5,mid+28,W-54,mid+28,col,1.5);
+  c.beginPath(); c.ellipse(42,mid+th/4,10,11,0,0,Math.PI*2); c.fill(); c.stroke();
+  label(c,'Round Win.',42,mid+th/4+22,col,9);
+  arrow(c,tx+5,mid+th/4,54,mid+th/4,col,1.5);
 }
 
 /* Stage 3 — Hair Cells */
