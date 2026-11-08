@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acoustic Analysis and Perception Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Exo 2',sans-serif;background:#060c1a;color:#dce7f5;padding:20px 24px 28px;font-size:13px;line-height:1.55}
+.wrap{max-width:1400px;margin:0 auto}
+.lab-header{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid #162135;margin-bottom:22px}
+.ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;letter-spacing:1px;padding:4px 9px;border-radius:4px}
+.lab-title{font-size:18px;font-weight:700}
+.lab-sub{font-size:13px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase}
+.section-tag{font-size:13px;font-weight:700;color:#FFC904;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
+.section-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.section-note{font-size:13px;color:#8eb4d4;margin-bottom:16px;max-width:1100px}
+.div{height:1px;background:#162135;margin:30px 0}
+.vis-outer{background:#060c18;border:1px solid #162135;border-radius:10px;margin-bottom:14px;overflow:hidden}
+.vis-topbar{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;color:#8eb4d4;letter-spacing:1.5px;text-transform:uppercase;padding:8px 12px 6px;border-bottom:1px solid #162135}
+.vis-topbar .hint{font-family:'IBM Plex Mono',monospace;letter-spacing:0;text-transform:none;font-weight:400;color:#5a7a9a}
+canvas{display:block;width:100%}
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px}
+.ctrl{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:12px 14px}
+.ctrl-lbl{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.ctrl-lbl b{font-family:'IBM Plex Mono',monospace;color:#FFC904;font-weight:600;letter-spacing:0;text-transform:none}
+input[type=range]{width:100%;accent-color:#4a9eff;cursor:pointer}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.nav-btn{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700;color:#8eb4d4;background:#0b1424;border:1px solid #162135;border-radius:7px;padding:9px 18px;cursor:pointer}
+.nav-btn:hover{border-color:#4a9eff;color:#dce7f5}
+.nav-btn.on{background:#4a9eff;color:#060c1a;border-color:#4a9eff}
+.nav-btn.gold{background:#FFC904;color:#000;border-color:#FFC904}
+.nav-btn.small{padding:6px 12px}
+.btn-lbl{font-size:13px;color:#5a7a9a;margin-right:4px}
+.readout-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.readout{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:10px 12px;text-align:center}
+.readout-lbl{font-size:13px;color:#8eb4d4;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.readout-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#4a9eff}
+.readout-val.gold{color:#FFC904}.readout-val.teal{color:#2dd4bf}
+.info-card{background:#0b1424;border:1px solid #162135;border-radius:10px;padding:14px 18px;margin-bottom:14px}
+.info-ctag{font-size:13px;font-weight:700;color:#4a9eff;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px}
+.info-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:6px}
+.info-desc{color:#a8c4dc;margin-bottom:8px}
+.fact-list{list-style:none}
+.fact-item{display:flex;gap:10px;color:#a8c4dc;margin:5px 0}
+.fact-dot{width:7px;height:7px;border-radius:50%;background:#4a9eff;margin-top:7px;flex-shrink:0}
+.task{border-left:3px solid #FFC904}
+.task .info-ctag{color:#FFC904}
+.warn{background:#1a1406;border:1px solid #5a4a12;border-radius:10px;padding:10px 14px;color:#f3dc8a;margin-bottom:22px}
+.anc-bars{padding:14px 16px}
+.bar-row{display:grid;grid-template-columns:200px 1fr 120px;gap:12px;align-items:center;margin:8px 0}
+.bar-name{color:#a8c4dc}
+.bar-track{position:relative;height:16px;background:#0b1424;border-radius:4px;overflow:hidden}
+.bar-noise{position:absolute;left:0;top:0;bottom:0;background:#5a7a9a;opacity:.45}
+.bar-res{position:absolute;left:0;top:0;bottom:0;background:#2dd4bf}
+.bar-db{font-family:'IBM Plex Mono',monospace;color:#FFC904;text-align:right}
+.band-wrap{padding:14px 16px 0}
+.band-lbl{font-size:13px;font-weight:600;color:#FFC904;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.band-axis{position:relative;height:58px;background:#0b1424;border-radius:6px;margin-bottom:4px}
+.band-pass{position:absolute;top:0;bottom:18px;background:rgba(255,201,4,.16);border-left:2px solid #FFC904;border-right:2px solid #FFC904}
+.band-pass.off{background:rgba(90,122,154,.12);border-color:#5a7a9a}
+.band-tick{position:absolute;bottom:2px;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5a7a9a}
+.band-comp{position:absolute;top:8px;width:3px;height:24px;transform:translateX(-50%);border-radius:2px}
+.band-comp span{position:absolute;top:-2px;left:8px;white-space:nowrap;font-size:12px;color:#a8c4dc}
+.band-tag{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-left:6px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:0 16px 12px;color:#8eb4d4}
+.legend span::before{content:'';display:inline-block;width:12px;height:3px;margin-right:6px;vertical-align:middle;background:var(--c)}
+.footer{margin-top:30px;padding-top:12px;border-top:1px solid #162135;color:#5a7a9a;font-size:13px;text-align:center}
+@media(max-width:640px){body{padding:16px}.bar-row{grid-template-columns:1fr;gap:4px}.bar-db{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="lab-header">
+  <span class="ucf-badge">UCF</span>
+  <div>
+    <div class="lab-title">SPA 3011: Acoustic Analysis and Perception Lab</div>
+    <div class="lab-sub">Phase · Interference · Noise Canceling · Doppler</div>
+  </div>
+</div>
+
+<div class="warn"><b>Headphones recommended.</b> Start with your volume low and raise it slowly. Every sound in this lab is capped at a comfortable level, but your device volume still controls the final loudness.</div>
+
+<!-- ============ PART 1 ============ -->
+<div class="section-tag">Part 1</div>
+<div class="section-title">Phase and Interference</div>
+<div class="section-note">Wave A is the reference. Wave B can be shifted in phase. When two waves share the same space, their amplitudes add at every instant. Shift the phase of Wave B and watch what happens to the sum.</div>
+
+<div class="ctrl-grid">
+  <div class="ctrl"><div class="ctrl-lbl">Wave A frequency <b id="p1fAv">250 Hz</b></div><input type="range" id="p1fA" min="100" max="1000" step="10" value="250"></div>
+  <div class="ctrl"><div class="ctrl-lbl">Wave B frequency <b id="p1fBv">250 Hz</b></div><input type="range" id="p1fB" min="100" max="1000" step="1" value="250" disabled></div>
+  <div class="ctrl"><div class="ctrl-lbl">Wave B phase shift <b id="p1phv">0°</b></div><input type="range" id="p1ph" min="0" max="360" step="15" value="0"></div>
+  <div class="ctrl"><div class="ctrl-lbl">Wave B amplitude <b id="p1aBv">1.00</b></div><input type="range" id="p1aB" min="0" max="1" step="0.05" value="1"></div>
+</div>
+
+<div class="btn-row">
+  <span class="btn-lbl">Phase presets:</span>
+  <button class="nav-btn small" data-ph="0">0°</button>
+  <button class="nav-btn small" data-ph="90">90°</button>
+  <button class="nav-btn small" data-ph="180">180°</button>
+  <button class="nav-btn small" data-ph="270">270°</button>
+  <span class="btn-lbl" style="margin-left:14px">Frequencies:</span>
+  <button class="nav-btn small on" id="p1lock">Locked (A = B)</button>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar"><span>Wave A, Wave B, and their sum</span><span class="hint" id="p1win"></span></div>
+  <canvas id="p1c" height="330"></canvas>
+  <div class="legend"><span style="--c:#4a9eff">Wave A</span><span style="--c:#2dd4bf">Wave B</span><span style="--c:#FFC904">Sum (A + B)</span></div>
+</div>
+
+<div class="readout-row">
+  <div class="readout"><div class="readout-lbl">Phase difference</div><div class="readout-val" id="r1ph">0°</div></div>
+  <div class="readout"><div class="readout-lbl">Peak of sum</div><div class="readout-val gold" id="r1pk">2.00</div></div>
+  <div class="readout"><div class="readout-lbl">Change vs. A alone</div><div class="readout-val teal" id="r1db">+6.0 dB</div></div>
+  <div class="readout"><div class="readout-lbl">Interference</div><div class="readout-val" id="r1type" style="font-size:15px">Fully constructive</div></div>
+</div>
+
+<div class="btn-row">
+  <span class="btn-lbl">Listen:</span>
+  <button class="nav-btn" id="p1playA">Play A</button>
+  <button class="nav-btn" id="p1playB">Play B</button>
+  <button class="nav-btn gold" id="p1playS">Play A + B</button>
+  <button class="nav-btn" id="p1stop">Stop</button>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag">Key ideas</div>
+  <div class="info-title">Phase only matters when you compare waves</div>
+  <ul class="fact-list">
+    <li class="fact-item"><span class="fact-dot"></span>One full cycle is 360°. Two waves of the same frequency keep a stable phase relationship.</li>
+    <li class="fact-item"><span class="fact-dot"></span>In phase (0°): peaks line up, the amplitudes add, and the sum is larger (constructive interference).</li>
+    <li class="fact-item"><span class="fact-dot"></span>180° out of phase with equal amplitude: every peak meets a trough, and the sum is zero (destructive interference).</li>
+    <li class="fact-item"><span class="fact-dot"></span>Unlock the frequencies and set them a few Hz apart. The phase relationship keeps drifting, so the sum swells and fades. These are called beats, and the beat rate equals the difference between the two frequencies.</li>
+  </ul>
+</div>
+
+<div class="div"></div>
+
+<!-- ============ PART 2 ============ -->
+<div class="section-tag">Part 2</div>
+<div class="section-title">Noise-Canceling Headphones (ANC)</div>
+<div class="section-note">A noise-canceling headphone samples the incoming noise with a microphone and plays an "anti-noise" signal. This simulation contains a 100 Hz engine hum, a 250 Hz cabin rumble, and a 2000 Hz voice-range sound. The ANC circuit sends the noise through a <b style="color:#FFC904">band-pass filter (50 Hz to 1000 Hz)</b> before making anti-noise. Only sounds inside that band get cancelled. Sounds outside the band pass straight through. The circuit also needs a small amount of time to process the sound, which is the processing delay.</div>
+
+<div class="ctrl-grid">
+  <div class="ctrl"><div class="ctrl-lbl">Anti-noise phase <b id="p2phv">180°</b></div><input type="range" id="p2ph" min="0" max="360" step="15" value="180"></div>
+  <div class="ctrl"><div class="ctrl-lbl">Processing delay <b id="p2dlv">0.00 ms</b></div><input type="range" id="p2dl" min="0" max="1" step="0.05" value="0"></div>
+</div>
+
+<div class="btn-row">
+  <span class="btn-lbl">ANC:</span>
+  <button class="nav-btn on" id="p2on">ANC on</button>
+  <button class="nav-btn" id="p2off">ANC off</button>
+  <span class="btn-lbl" style="margin-left:14px">Listen:</span>
+  <button class="nav-btn gold" id="p2play">Play noise</button>
+  <button class="nav-btn" id="p2stop">Stop</button>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar"><span>What reaches the eardrum</span><span class="hint">ANC band-pass: 50 to 1000 Hz</span></div>
+  <div class="band-wrap"><div class="band-lbl">ANC band-pass filter</div><div class="band-axis" id="p2band"></div></div>
+  <div class="anc-bars" id="p2bars"></div>
+  <div class="legend"><span style="--c:#5a7a9a">Original noise level</span><span style="--c:#2dd4bf">Level with ANC</span></div>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar"><span>Waveform at the eardrum</span><span class="hint">20 ms window</span></div>
+  <canvas id="p2c" height="220"></canvas>
+  <div class="legend"><span style="--c:#5a7a9a">Original noise</span><span style="--c:#2dd4bf">With ANC</span></div>
+</div>
+
+<div class="readout-row">
+  <div class="readout"><div class="readout-lbl">100 Hz hum</div><div class="readout-val teal" id="r2a">n/a</div></div>
+  <div class="readout"><div class="readout-lbl">250 Hz rumble</div><div class="readout-val teal" id="r2b">n/a</div></div>
+  <div class="readout"><div class="readout-lbl">2000 Hz voice</div><div class="readout-val teal" id="r2c">n/a</div></div>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag">Key ideas</div>
+  <div class="info-title">Why ANC handles hum better than voices</div>
+  <ul class="fact-list">
+    <li class="fact-item"><span class="fact-dot"></span>ANC is destructive interference. The anti-noise has to be the same frequency and amplitude, and 180° out of phase.</li>
+    <li class="fact-item"><span class="fact-dot"></span>The band-pass filter decides which sounds get anti-noise. It combines a high-pass filter (removes below 50 Hz) and a low-pass filter (removes above 1000 Hz). Anything outside the band reaches your ear unchanged.</li>
+    <li class="fact-item"><span class="fact-dot"></span>A processing delay becomes a phase error. The same delay is a much bigger part of a short (high-frequency) cycle than a long (low-frequency) cycle.</li>
+    <li class="fact-item"><span class="fact-dot"></span>Steady, low-frequency noise (engines, HVAC) is easiest to cancel. Higher-frequency and sudden sounds mostly get through, and only the passive seal of the ear cups reduces them.</li>
+  </ul>
+</div>
+
+<div class="div"></div>
+
+<!-- ============ PART 3 ============ -->
+<div class="section-tag">Part 3</div>
+<div class="section-title">The Doppler Effect</div>
+<div class="section-note">A moving sound source passes a listener. The rings are wavefronts spreading out at the speed of sound (343 m/s). Watch them bunch up in front of the moving source and spread out behind it. The effect is easier to see at higher speeds. The source itself never changes frequency. Only the frequency the listener receives changes.</div>
+
+<div class="ctrl-grid">
+  <div class="ctrl"><div class="ctrl-lbl">Source frequency <b id="p3fv">500 Hz</b></div><input type="range" id="p3f" min="200" max="1000" step="10" value="500"></div>
+  <div class="ctrl"><div class="ctrl-lbl">Source speed <b id="p3vv">30 m/s (67 mph)</b></div><input type="range" id="p3v" min="0" max="150" step="5" value="30"></div>
+</div>
+
+<div class="btn-row">
+  <button class="nav-btn gold" id="p3go">Start moving source</button>
+  <button class="nav-btn" id="p3reset">Reset</button>
+  <button class="nav-btn" id="p3snd">Sound: off</button>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar"><span>Top-down view</span><span class="hint" id="p3state">Ready</span></div>
+  <canvas id="p3c" height="300"></canvas>
+</div>
+
+<div class="vis-outer">
+  <div class="vis-topbar"><span>Frequency the listener hears over time</span><span class="hint">dashed line = actual source frequency</span></div>
+  <canvas id="p3g" height="170"></canvas>
+</div>
+
+<div class="readout-row">
+  <div class="readout"><div class="readout-lbl">Actual frequency</div><div class="readout-val" id="r3f">500 Hz</div></div>
+  <div class="readout"><div class="readout-lbl">Heard now</div><div class="readout-val gold" id="r3now">500 Hz</div></div>
+  <div class="readout"><div class="readout-lbl">Heard approaching</div><div class="readout-val teal" id="r3app">548 Hz</div></div>
+  <div class="readout"><div class="readout-lbl">Heard receding</div><div class="readout-val teal" id="r3rec">460 Hz</div></div>
+  <div class="readout"><div class="readout-lbl">Pitch drop</div><div class="readout-val" id="r3drop">88 Hz</div></div>
+</div>
+
+<div class="info-card">
+  <div class="info-ctag">Key ideas</div>
+  <div class="info-title">Approaching is higher, receding is lower</div>
+  <ul class="fact-list">
+    <li class="fact-item"><span class="fact-dot"></span>Approaching: the source catches up to its own waves. Wavelengths in front get shorter, so the frequency heard is higher.</li>
+    <li class="fact-item"><span class="fact-dot"></span>Receding: the source moves away from the waves behind it. Wavelengths get longer, so the frequency heard is lower.</li>
+    <li class="fact-item"><span class="fact-dot"></span>The "approaching" and "receding" readouts assume the source is far away and heading straight toward or away from you: f × 343 / (343 − v) and f × 343 / (343 + v).</li>
+    <li class="fact-item"><span class="fact-dot"></span>Speed is set in meters per second. 1 m/s is about 2.24 mph.</li>
+  </ul>
+</div>
+
+<div class="footer">© 2025 Adam Reres</div>
+</div>
+
+<script>
+(function(){
+const TAU=Math.PI*2, C=343, MAXG=0.12;
+const $=id=>document.getElementById(id);
+
+/* ---------- canvas helpers (init once, resize only on window resize) ---------- */
+const canv={};
+function initC(id){
+  const c=$(id), dpr=window.devicePixelRatio||1, w=c.parentElement.offsetWidth, h=+c.getAttribute('height');
+  c.width=w*dpr; c.height=h*dpr; c.style.height=h+'px';
+  const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  canv[id]={c,ctx,W:w,H:h};
+}
+function initAll(){['p1c','p2c','p3c','p3g'].forEach(initC)}
+
+/* ---------- audio ---------- */
+let AC=null;
+function ac(){ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();} if(AC.state==='suspended')AC.resume(); return AC; }
+function phasedOsc(ctx,f,phDeg){
+  const o=ctx.createOscillator(), p=phDeg*Math.PI/180;
+  const real=new Float32Array([0,Math.sin(p)]), imag=new Float32Array([0,Math.cos(p)]);
+  o.setPeriodicWave(ctx.createPeriodicWave(real,imag,{disableNormalization:true}));
+  o.frequency.value=f; return o;
+}
+function fadeStop(nodes,gain){
+  if(!gain)return; const ctx=ac(), t=ctx.currentTime;
+  gain.gain.setTargetAtTime(0,t,0.02); nodes.forEach(n=>{try{n.stop(t+0.15)}catch(e){}});
+}
+
+/* ================= PART 1 ================= */
+const s1={fA:250,fB:250,ph:0,aB:1,lock:true,mode:null,nodes:[],g:null};
+function p1calc(){
+  const aA=1;
+  if(s1.lock){
+    const p=s1.ph*Math.PI/180;
+    const pk=Math.sqrt(aA*aA+s1.aB*s1.aB+2*aA*s1.aB*Math.cos(p));
+    let type;
+    if(s1.aB===0) type='No Wave B';
+    else if(s1.ph%360===0) type='Fully constructive';
+    else if(s1.ph===180 && Math.abs(s1.aB-1)<1e-9) type='Fully destructive';
+    else if(pk>aA+1e-9) type='Partly constructive';
+    else type='Partly destructive';
+    return {pk,type,beat:0};
+  }
+  const beat=Math.abs(s1.fA-s1.fB);
+  return {pk:aA+s1.aB,type:beat===0?'Same frequency':'Beats: '+beat+' Hz',beat,min:Math.abs(aA-s1.aB)};
+}
+function p1draw(){
+  const {ctx,W,H}=canv.p1c; ctx.clearRect(0,0,W,H);
+  const r=p1calc();
+  const win=s1.lock?3/s1.fA:(r.beat>0?Math.min(0.5,Math.max(0.05,2/r.beat)):3/s1.fA);
+  $('p1win').textContent='window: '+(win*1000).toFixed(win<0.01?1:0)+' ms';
+  const lanes=[{y:55,s:40,col:'#4a9eff',f:t=>Math.sin(TAU*s1.fA*t),lbl:'A'},
+               {y:150,s:40,col:'#2dd4bf',f:t=>s1.aB*Math.sin(TAU*s1.fB*t+s1.ph*Math.PI/180),lbl:'B'},
+               {y:255,s:30,col:'#FFC904',f:t=>Math.sin(TAU*s1.fA*t)+s1.aB*Math.sin(TAU*s1.fB*t+s1.ph*Math.PI/180),lbl:'A+B'}];
+  const x0=48,x1=W-14;
+  ctx.font='12px IBM Plex Mono';
+  lanes.forEach(L=>{
+    ctx.strokeStyle='#162135'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0,L.y); ctx.lineTo(x1,L.y); ctx.stroke();
+    ctx.fillStyle='#8eb4d4'; ctx.fillText(L.lbl,8,L.y+4);
+    ctx.strokeStyle=L.col; ctx.lineWidth=2; ctx.beginPath();
+    const N=Math.max(400,Math.floor(x1-x0)*2);
+    for(let i=0;i<=N;i++){const t=win*i/N, x=x0+(x1-x0)*i/N, y=L.y-L.f(t)*L.s; i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+    ctx.stroke();
+  });
+  // sum guide lines at +/-1 (A alone)
+  ctx.setLineDash([4,4]); ctx.strokeStyle='#5a7a9a'; ctx.lineWidth=1;
+  [255-30,255+30].forEach(y=>{ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();});
+  ctx.setLineDash([]); ctx.fillStyle='#5a7a9a'; ctx.fillText('A alone',x1-60,255-34);
+  $('r1ph').textContent=s1.lock?s1.ph+'°':'drifting';
+  $('r1pk').textContent=s1.lock?r.pk.toFixed(2):r.min.toFixed(2)+' to '+r.pk.toFixed(2);
+  if(s1.lock){ $('r1db').textContent=r.pk<1e-6?'silent':( (r.pk>=1?'+':'')+(20*Math.log10(r.pk)).toFixed(1)+' dB'); }
+  else $('r1db').textContent='varies';
+  $('r1type').textContent=r.type;
+}
+function p1update(){
+  s1.fA=+$('p1fA').value; s1.ph=+$('p1ph').value; s1.aB=+$('p1aB').value;
+  if(s1.lock){s1.fB=s1.fA; $('p1fB').value=s1.fA;} else s1.fB=+$('p1fB').value;
+  $('p1fAv').textContent=s1.fA+' Hz'; $('p1fBv').textContent=s1.fB+' Hz';
+  $('p1phv').textContent=s1.ph+'°'; $('p1aBv').textContent=s1.aB.toFixed(2);
+  p1draw(); if(s1.mode)p1play(s1.mode);
+}
+function p1stop(){fadeStop(s1.nodes,s1.g); s1.nodes=[]; s1.g=null; s1.mode=null;}
+function p1play(mode){
+  const old=s1.nodes, og=s1.g; if(og){og.gain.setTargetAtTime(0,ac().currentTime,0.01); old.forEach(n=>{try{n.stop(ac().currentTime+0.05)}catch(e){}});}
+  const ctx=ac(), g=ctx.createGain(); g.gain.value=0; g.connect(ctx.destination);
+  const t=ctx.currentTime+0.06, nodes=[];
+  if(mode!=='B'){const o=phasedOsc(ctx,s1.fA,0), og2=ctx.createGain(); og2.gain.value=MAXG; o.connect(og2).connect(g); o.start(t); nodes.push(o);}
+  if(mode!=='A'){const o=phasedOsc(ctx,s1.fB,s1.ph), og2=ctx.createGain(); og2.gain.value=MAXG*s1.aB; o.connect(og2).connect(g); o.start(t); nodes.push(o);}
+  g.gain.setTargetAtTime(1,t,0.02);
+  s1.nodes=nodes; s1.g=g; s1.mode=mode;
+}
+['p1fA','p1fB','p1ph','p1aB'].forEach(id=>$(id).addEventListener('input',p1update));
+document.querySelectorAll('[data-ph]').forEach(b=>b.addEventListener('click',()=>{$('p1ph').value=b.dataset.ph;p1update();}));
+$('p1lock').addEventListener('click',()=>{
+  s1.lock=!s1.lock; const b=$('p1lock');
+  b.classList.toggle('on',s1.lock); b.textContent=s1.lock?'Locked (A = B)':'Unlocked';
+  $('p1fB').disabled=s1.lock; if(!s1.lock){$('p1fB').value=s1.fA+3;} p1update();
+});
+$('p1playA').onclick=()=>p1play('A'); $('p1playB').onclick=()=>p1play('B'); $('p1playS').onclick=()=>p1play('S'); $('p1stop').onclick=p1stop;
+
+/* ================= PART 2 ================= */
+const COMPS=[{f:100,a:1,name:'100 Hz engine hum',id:'r2a'},{f:250,a:0.6,name:'250 Hz cabin rumble',id:'r2b'},{f:2000,a:0.4,name:'2000 Hz voice range',id:'r2c'}];
+const LOW=50, CUT=1000;
+const FX=f=>(Math.log10(f)-Math.log10(20))/(Math.log10(5000)-Math.log10(20))*100;
+const s2={on:true,ph:180,dl:0,nodes:[],g:null,playing:false};
+function residual(c){
+  if(!s2.on||c.f<LOW||c.f>CUT) return {amp:c.a,phase:0};
+  // noise + anti-noise (phase shift ph, delayed by dl ms)
+  const p=s2.ph*Math.PI/180 - TAU*c.f*s2.dl/1000;
+  const re=1+Math.cos(p), im=Math.sin(p);
+  return {amp:c.a*Math.hypot(re,im),phase:Math.atan2(im,re)};
+}
+function dbTxt(r,a){ if(r<a*1e-3) return 'silent'; const d=20*Math.log10(r/a); return (d>=0?'+':'')+d.toFixed(1)+' dB'; }
+function p2draw(){
+  const res=COMPS.map(residual);
+  let html='';
+  COMPS.forEach((c,i)=>{
+    const max=2;
+    const inB=c.f>=LOW&&c.f<=CUT;
+    html+='<div class="bar-row"><div class="bar-name">'+c.name+'<span class="band-tag" style="color:'+(inB?'#FFC904':'#5a7a9a')+'">'+(inB?'in band':'outside band')+'</span></div><div class="bar-track"><div class="bar-noise" style="width:'+(c.a/max*100)+'%"></div><div class="bar-res" style="width:'+(res[i].amp/max*100)+'%"></div></div><div class="bar-db">'+dbTxt(res[i].amp,c.a)+'</div></div>';
+    $(c.id).textContent=dbTxt(res[i].amp,c.a);
+  });
+  $('p2bars').innerHTML=html;
+  let bh='<div class="band-pass'+(s2.on?'':' off')+'" style="left:'+FX(LOW)+'%;width:'+(FX(CUT)-FX(LOW))+'%"></div>';
+  [20,50,100,250,500,1000,2000,5000].forEach(f=>{bh+='<div class="band-tick" style="left:'+Math.min(97,Math.max(3,FX(f)))+'%">'+(f>=1000?f/1000+'k':f)+'</div>';});
+  COMPS.forEach(c=>{bh+='<div class="band-comp" style="left:'+FX(c.f)+'%;background:'+(c.f>=LOW&&c.f<=CUT?'#2dd4bf':'#8eb4d4')+'"><span>'+c.f+' Hz</span></div>';});
+  $('p2band').innerHTML=bh;
+  const {ctx,W,H}=canv.p2c; ctx.clearRect(0,0,W,H);
+  const x0=10,x1=W-10,y=H/2,s=H/2/2.4,win=0.02,N=1200;
+  ctx.strokeStyle='#162135';ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
+  const draw=(fn,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();for(let i=0;i<=N;i++){const t=win*i/N,x=x0+(x1-x0)*i/N,v=fn(t);i?ctx.lineTo(x,y-v*s):ctx.moveTo(x,y-v*s);}ctx.stroke();};
+  draw(t=>COMPS.reduce((a,c)=>a+c.a*Math.sin(TAU*c.f*t),0),'rgba(90,122,154,.8)',1.5);
+  draw(t=>COMPS.reduce((a,c,i)=>a+res[i].amp*Math.sin(TAU*c.f*t+res[i].phase),0),'#2dd4bf',2);
+}
+function p2audio(){
+  if(!s2.playing)return;
+  const ctx=ac(), res=COMPS.map(residual);
+  if(!s2.g){
+    const g=ctx.createGain(); g.gain.value=0; g.connect(ctx.destination);
+    s2.nodes=COMPS.map(c=>{const o=ctx.createOscillator(); o.frequency.value=c.f; const gg=ctx.createGain(); gg.gain.value=0; o.connect(gg).connect(g); o.start(); return {o,gg};});
+    g.gain.setTargetAtTime(1,ctx.currentTime,0.03); s2.g=g;
+  }
+  s2.nodes.forEach((n,i)=>n.gg.gain.setTargetAtTime(MAXG*0.9*res[i].amp/1.0,ctx.currentTime,0.03));
+}
+function p2update(){
+  s2.ph=+$('p2ph').value; s2.dl=+$('p2dl').value;
+  $('p2phv').textContent=s2.ph+'°'; $('p2dlv').textContent=s2.dl.toFixed(2)+' ms';
+  $('p2on').classList.toggle('on',s2.on); $('p2off').classList.toggle('on',!s2.on);
+  p2draw(); p2audio();
+}
+['p2ph','p2dl'].forEach(id=>$(id).addEventListener('input',p2update));
+$('p2on').onclick=()=>{s2.on=true;p2update();}; $('p2off').onclick=()=>{s2.on=false;p2update();};
+$('p2play').onclick=()=>{s2.playing=true;p2audio();};
+$('p2stop').onclick=()=>{s2.playing=false; if(s2.g){fadeStop(s2.nodes.map(n=>n.o),s2.g);} s2.g=null; s2.nodes=[];};
+
+/* ================= PART 3 ================= */
+const ROAD=260, LISTEN_Y=20, RING_DT=0.04; // metres, metres from road, seconds between drawn rings
+const s3={f:500,v:30,x:-ROAD/2,t:0,run:false,rings:[],hist:[],last:null,snd:false,osc:null,g:null,lastRing:0};
+function heard(x){
+  // source at (x,0) moving +x, listener at (0,LISTEN_Y)
+  const d=Math.hypot(x,LISTEN_Y), vr=s3.v*(-x)/d; // component toward listener
+  return s3.f*C/(C-vr);
+}
+function p3stat(){
+  const app=s3.f*C/(C-s3.v), rec=s3.f*C/(C+s3.v);
+  $('r3f').textContent=s3.f+' Hz'; $('r3app').textContent=app.toFixed(0)+' Hz';
+  $('r3rec').textContent=rec.toFixed(0)+' Hz'; $('r3drop').textContent=(app-rec).toFixed(0)+' Hz';
+  $('p3fv').textContent=s3.f+' Hz'; $('p3vv').textContent=s3.v+' m/s ('+Math.round(s3.v*2.237)+' mph)';
+}
+function p3draw(){
+  const {ctx,W,H}=canv.p3c; ctx.clearRect(0,0,W,H);
+  const sc=W/ROAD, ox=W/2, roadY=H*0.36, ly=roadY+LISTEN_Y*sc;
+  const X=m=>ox+m*sc;
+  // road
+  ctx.fillStyle='#0b1424'; ctx.fillRect(0,roadY-14,W,28);
+  ctx.setLineDash([12,10]); ctx.strokeStyle='#5a7a9a'; ctx.beginPath(); ctx.moveTo(0,roadY); ctx.lineTo(W,roadY); ctx.stroke(); ctx.setLineDash([]);
+  // rings
+  ctx.lineWidth=1.3;
+  s3.rings.forEach(r=>{const rad=(s3.t-r.t)*C*sc; if(rad<=0)return; const a=Math.max(0,1-rad/(W*0.45)); ctx.strokeStyle='rgba(74,158,255,'+(0.75*a).toFixed(3)+')'; ctx.beginPath(); ctx.arc(X(r.x),roadY,rad,0,TAU); ctx.stroke();});
+  // listener
+  ctx.fillStyle='#2dd4bf'; ctx.beginPath(); ctx.arc(ox,ly,8,0,TAU); ctx.fill();
+  ctx.fillStyle='#a8c4dc'; ctx.font='12px Exo 2'; ctx.textAlign='center'; ctx.fillText('Listener',ox,ly+24);
+  // source
+  ctx.fillStyle='#FFC904'; ctx.beginPath(); ctx.arc(X(s3.x),roadY,9,0,TAU); ctx.fill();
+  ctx.fillStyle='#000'; ctx.font='bold 11px Exo 2'; ctx.fillText('S',X(s3.x),roadY+4);
+  if(s3.v>0){ctx.strokeStyle='#FFC904';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(s3.x)+14,roadY);ctx.lineTo(X(s3.x)+30,roadY);ctx.lineTo(X(s3.x)+25,roadY-5);ctx.moveTo(X(s3.x)+30,roadY);ctx.lineTo(X(s3.x)+25,roadY+5);ctx.stroke();}
+  ctx.textAlign='left';
+  // graph
+  const G=canv.p3g, g=G.ctx; g.clearRect(0,0,G.W,G.H);
+  const span=Math.max(s3.f*C/(C-s3.v)-s3.f*C/(C+s3.v),s3.f*0.1), fmin=s3.f*C/(C+s3.v)-span*0.15, fmax=s3.f*C/(C-s3.v)+span*0.15, gx0=56, gx1=G.W-12, gy0=12, gy1=G.H-24;
+  const Y=f=>gy1-(f-fmin)/(fmax-fmin)*(gy1-gy0), GX=x=>gx0+(x+ROAD/2)/ROAD*(gx1-gx0);
+  g.strokeStyle='#162135'; g.strokeRect(gx0,gy0,gx1-gx0,gy1-gy0);
+  g.setLineDash([5,5]); g.strokeStyle='#5a7a9a'; g.beginPath(); g.moveTo(gx0,Y(s3.f)); g.lineTo(gx1,Y(s3.f)); g.stroke(); g.setLineDash([]);
+  g.fillStyle='#8eb4d4'; g.font='12px IBM Plex Mono'; g.fillText(s3.f+' Hz',4,Y(s3.f)+4);
+  g.fillText('source approaching',gx0+6,G.H-6); g.textAlign='right'; g.fillText('source moving away',gx1-4,G.H-6); g.textAlign='left';
+  g.strokeStyle='#FFC904'; g.lineWidth=2; g.beginPath();
+  s3.hist.forEach((p,i)=>{i?g.lineTo(GX(p.x),Y(p.f)):g.moveTo(GX(p.x),Y(p.f));}); g.stroke();
+  const fn=heard(s3.x); $('r3now').textContent=fn.toFixed(0)+' Hz';
+  const st=Math.abs(s3.x)<3?'Passing':(s3.x<0?'Approaching':'Moving away');
+  $('p3state').textContent=s3.run?st:(s3.x>=ROAD/2?'Done':'Ready');
+}
+function p3reset(){s3.run=false;s3.x=-ROAD/2;s3.t=0;s3.rings=[];s3.hist=[];s3.lastRing=-1;s3.last=null;$('p3go').textContent='Start moving source';p3sound(false);p3draw();}
+function p3sound(on){
+  if(on&&s3.snd&&!s3.osc){const ctx=ac(); s3.osc=ctx.createOscillator(); s3.osc.type='triangle'; s3.g=ctx.createGain(); s3.g.gain.value=0; s3.osc.connect(s3.g).connect(ctx.destination); s3.osc.frequency.value=heard(s3.x); s3.osc.start();}
+  if(!on&&s3.osc){fadeStop([s3.osc],s3.g); s3.osc=null; s3.g=null;}
+}
+function p3tick(ts){
+  if(!s3.run)return;
+  if(s3.last===null)s3.last=ts;
+  let dt=Math.min(0.05,(ts-s3.last)/1000); s3.last=ts;
+  if(s3.v===0){ s3.t+=dt; } else { s3.t+=dt; s3.x+=s3.v*dt; }
+  if(s3.t-s3.lastRing>=RING_DT){s3.rings.push({x:s3.x,t:s3.t}); s3.lastRing=s3.t; if(s3.rings.length>80)s3.rings.shift();}
+  s3.hist.push({x:s3.x,f:heard(s3.x)});
+  if(s3.osc){const ctx=ac(), d=Math.hypot(s3.x,LISTEN_Y); s3.osc.frequency.setTargetAtTime(heard(s3.x),ctx.currentTime,0.01); s3.g.gain.setTargetAtTime(Math.min(MAXG,MAXG*LISTEN_Y/d*1.2),ctx.currentTime,0.03);}
+  if(s3.x>=ROAD/2||(s3.v===0&&s3.t>6)){s3.run=false;$('p3go').textContent='Start moving source';p3sound(false);}
+  p3draw();
+  if(s3.run)requestAnimationFrame(p3tick);
+}
+$('p3go').onclick=()=>{
+  if(s3.run){s3.run=false;$('p3go').textContent='Resume';p3sound(false);return;}
+  if(s3.x>=ROAD/2||s3.v===0&&s3.t>6)p3reset();
+  s3.run=true;s3.last=null;$('p3go').textContent='Pause';p3sound(true);requestAnimationFrame(p3tick);
+};
+$('p3reset').onclick=p3reset;
+$('p3snd').onclick=()=>{s3.snd=!s3.snd;$('p3snd').textContent='Sound: '+(s3.snd?'on':'off');$('p3snd').classList.toggle('on',s3.snd); if(s3.snd&&s3.run)p3sound(true); if(!s3.snd)p3sound(false);};
+$('p3f').addEventListener('input',()=>{s3.f=+$('p3f').value;p3stat();p3reset();});
+$('p3v').addEventListener('input',()=>{s3.v=+$('p3v').value;p3stat();p3reset();});
+
+/* ---------- boot ---------- */
+initAll(); p1update(); p2update(); p3stat(); p3reset();
+let rt=null; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{initAll();p1draw();p2draw();p3draw();},150);});
+})();
+</script>
+</body>
+</html>
