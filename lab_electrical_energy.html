@@ -265,11 +265,49 @@ function lobeFromPixel(r,g,b){
   return null;
 }
 
+let brainGeom = {offX:0, padT:0, imgW:1, imgH:1};
+const LOBE_ANCHOR = {
+  frontal:   {ax:0.22,  ay:0.445, side:'L'},
+  temporal:  {ax:0.483, ay:0.654, side:'L'},
+  parietal:  {ax:0.652, ay:0.288, side:'R'},
+  occipital: {ax:0.887, ay:0.524, side:'R'}
+};
+
+function lobeCallout(c, l, x, y, align, state){
+  const pad = 6, bh = 38;
+  c.font = 'bold 15px Exo 2,sans-serif';
+  const w1 = c.measureText(l.label).width;
+  c.font = '12px Exo 2,sans-serif';
+  const w2 = c.measureText(l.ctag).width;
+  const bw = Math.max(w1,w2) + pad*2;
+  const bx = align==='right' ? x - bw : x;
+  const by = y - bh/2;
+  c.globalAlpha = state==='dim' ? 0.5 : 1;
+  c.fillStyle = 'rgba(4,10,24,0.92)';
+  c.beginPath(); c.roundRect(bx, by, bw, bh, 4); c.fill();
+  c.strokeStyle = l.color; c.lineWidth = state==='on' ? 2.5 : 1.5;
+  c.beginPath(); c.roundRect(bx, by, bw, bh, 4); c.stroke();
+  c.textAlign = align==='right' ? 'right' : 'left';
+  const tx = align==='right' ? bx + bw - pad : bx + pad;
+  c.fillStyle = l.color;
+  c.font = 'bold 15px Exo 2,sans-serif';
+  c.fillText(l.label, tx, by + 16);
+  c.fillStyle = '#c4d8ec';
+  c.font = '12px Exo 2,sans-serif';
+  c.fillText(l.ctag, tx, by + 31);
+  c.globalAlpha = 1;
+}
+
 function drawBrain(highlight){
   const cv = document.getElementById('brainCanvas');
   const dpr = window.devicePixelRatio||1;
-  const W = Math.round((cv.parentElement.offsetWidth||600) * 0.375);
-  const H = Math.round(W*(546/765));
+  const W = Math.round(cv.parentElement.clientWidth || 600);
+  const imgW = Math.round(W * 0.375);
+  const imgH = Math.round(imgW * (546/765));
+  const padT = 24, padB = 24;
+  const H = padT + imgH + padB;
+  const offX = Math.round((W - imgW)/2);
+  brainGeom = {offX, padT, imgW, imgH};
   cv.width  = Math.round(W*dpr);
   cv.height = Math.round(H*dpr);
   cv.style.width  = W+'px';
@@ -278,7 +316,7 @@ function drawBrain(highlight){
   c.setTransform(dpr,0,0,dpr,0,0);
   c.clearRect(0,0,W,H);
   if(!brainLoaded) return;
-  c.drawImage(brainImg,0,0,W,H);
+  c.drawImage(brainImg, offX, padT, imgW, imgH);
 
   if(highlight){
     const lobe = LOBES.find(l=>l.id===highlight);
@@ -299,10 +337,43 @@ function drawBrain(highlight){
       }
       ovCtx.putImageData(ovImg,0,0);
       c.globalAlpha=0.6;
-      c.drawImage(ov,0,0,W,H);
+      c.drawImage(ov, offX, padT, imgW, imgH);
       c.globalAlpha=1.0;
     }
   }
+
+  // ── outside callouts with leader lines ──
+  const DARK = 'rgba(4,10,24,0.9)';
+  const bh = 38, gap = 4;
+  ['L','R'].forEach(side=>{
+    const items = LOBES.filter(l=>LOBE_ANCHOR[l.id].side===side)
+      .map(l=>({l, a:LOBE_ANCHOR[l.id], ay: padT + LOBE_ANCHOR[l.id].ay*imgH}))
+      .sort((p,q)=>p.ay-q.ay);
+    // keep boxes from overlapping
+    items.forEach((it,i)=>{
+      it.by = it.ay;
+      if(i>0 && it.by - items[i-1].by < bh+gap) it.by = items[i-1].by + bh + gap;
+    });
+    items.forEach(it=>{
+      const {l,a} = it;
+      const state = !highlight ? 'idle' : (highlight===l.id ? 'on' : 'dim');
+      const ax = offX + a.ax*imgW;
+      const edge = side==='L' ? offX - 11 : offX + imgW + 11;
+      c.globalAlpha = state==='dim' ? 0.5 : 1;
+      c.lineCap = 'round';
+      c.beginPath(); c.moveTo(ax, it.ay); c.lineTo(edge, it.by);
+      c.strokeStyle = DARK; c.lineWidth = 4.5; c.stroke();
+      c.strokeStyle = l.color; c.lineWidth = state==='on' ? 2.5 : 1.75; c.stroke();
+      c.lineCap = 'butt';
+      c.beginPath(); c.arc(ax, it.ay, state==='on'?6:5, 0, Math.PI*2);
+      c.strokeStyle = DARK; c.lineWidth = 4; c.stroke();
+      c.strokeStyle = l.color; c.lineWidth = 2; c.stroke();
+      c.beginPath(); c.arc(ax, it.ay, 2.5, 0, Math.PI*2);
+      c.fillStyle = '#ffffff'; c.fill();
+      c.globalAlpha = 1;
+      lobeCallout(c, l, edge, it.by, side==='L' ? 'right' : 'left', state);
+    });
+  });
 }
 
 function selectLobe(id){
@@ -334,8 +405,10 @@ document.getElementById('brainCanvas').addEventListener('click',e=>{
   if(!brainLoaded) return;
   const cv=document.getElementById('brainCanvas');
   const rect=cv.getBoundingClientRect();
-  const sx=(e.clientX-rect.left)*(offCv.width/rect.width);
-  const sy=(e.clientY-rect.top)*(offCv.height/rect.height);
+  const g=brainGeom;
+  const sx=(e.clientX-rect.left-g.offX)*(offCv.width/g.imgW);
+  const sy=(e.clientY-rect.top-g.padT)*(offCv.height/g.imgH);
+  if(sx<0||sy<0||sx>=offCv.width||sy>=offCv.height) return;
   const px=offCtx.getImageData(Math.round(sx),Math.round(sy),1,1).data;
   const id=lobeFromPixel(px[0],px[1],px[2]);
   if(id) selectLobe(id);
