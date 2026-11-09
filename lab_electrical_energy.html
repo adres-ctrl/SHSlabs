@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Exo 2',sans-serif;background:#0f2038;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
+  body{font-family:'Exo 2',sans-serif;background:#060c1a;color:#dce7f5;min-width:600px;padding:20px 24px 28px;}
   .lab-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #162135;}
   .ucf-badge{background:#FFC904;color:#000;font-weight:800;font-size:13px;padding:4px 9px;border-radius:4px;letter-spacing:1px;}
   .lab-title{font-size:18px;font-weight:700;color:#dce7f5;}
@@ -33,7 +33,7 @@
 
   /* ── PART 1 LOBE EXPLORER ── */
   #brainWrap{position:relative;display:block;margin-bottom:14px;background:#060c18;border:1px solid #162135;border-radius:10px;overflow:hidden;cursor:crosshair;}
-  #brainCanvas{display:block;width:100%;}
+  #brainCanvas{display:block;margin:0 auto;}
   .lobe-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
   .lobe-chip{display:flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:20px;border:1px solid;cursor:pointer;transition:all 0.15s;font-weight:600;}
 
@@ -119,7 +119,7 @@
 <!-- ═══ PART 2: HOMUNCULUS ════════════════════════════════ -->
 <div class="section-tag">Part 2</div>
 <div class="section-title">Sensorimotor Homunculus</div>
-<div class="section-note">Both the motor (precentral gyrus) and sensory (postcentral gyrus) strips are shown simultaneously. The strip runs from medial (top-right, toes) to lateral (bottom-left, larynx). Drag the slider to step through each body region.</div>
+<div class="section-note">Both the motor (precentral gyrus) and sensory (postcentral gyrus) strips are shown simultaneously. The strip runs from medial (top-right, toes) to lateral (bottom-left, larynx). Drag the slider to step through each body region. The label sits in the margin with a leader line to its dot. The small white bar under the dots is a schematic of relative cortical area, not a measurement.</div>
 
 <div class="vis-outer">
   <div class="vis-topbar">
@@ -245,8 +245,10 @@ brainImg.onload = () => {
   offCtx.drawImage(brainImg, 0, 0);
   brainLoaded = true;
   drawBrain(null);
+  drawHomunculus();
+  updateHomInfo();
 };
-brainImg.src = 'data:image/png;base64,' + BRAIN_B64;
+brainImg.src = 'data:image/jpeg;base64,' + BRAIN_B64;
 
 function colorDist(r,g,b, tr,tg,tb){ return Math.sqrt((r-tr)**2+(g-tg)**2+(b-tb)**2); }
 
@@ -266,7 +268,7 @@ function lobeFromPixel(r,g,b){
 function drawBrain(highlight){
   const cv = document.getElementById('brainCanvas');
   const dpr = window.devicePixelRatio||1;
-  const W = Math.round((cv.parentElement.offsetWidth||600) * 0.75);
+  const W = Math.round((cv.parentElement.offsetWidth||600) * 0.375);
   const H = Math.round(W*(546/765));
   cv.width  = Math.round(W*dpr);
   cv.height = Math.round(H*dpr);
@@ -276,6 +278,7 @@ function drawBrain(highlight){
   c.setTransform(dpr,0,0,dpr,0,0);
   c.clearRect(0,0,W,H);
   if(!brainLoaded) return;
+  c.drawImage(brainImg,0,0,W,H);
 
   if(highlight){
     const lobe = LOBES.find(l=>l.id===highlight);
@@ -370,7 +373,7 @@ const BODY_PARTS = [
     cortSize:0.32, speech:false,
     desc:'Controls plantar flexion, dorsiflexion, and foot positioning. More cortex than toes but modest compared to upper limb regions.',
     facts:['Foot control is critical for balance and gait but requires less fine discrimination than hand movements.',
-           'Damage here produces foot drop — inability to dorsiflex — a classic sign of an upper motor neuron lesion affecting the leg area.']
+           'An upper motor neuron lesion here typically causes weakness and spasticity, often with a spastic equinus (toe-pointing) posture. Isolated flaccid foot drop more often points to a peripheral (lower motor neuron) cause such as common peroneal nerve injury.']
   },
   { label:'Leg',
     mx:0.487, my:0.130,
@@ -384,7 +387,7 @@ const BODY_PARTS = [
     cortSize:0.28, speech:false,
     desc:'Relatively small representation. Trunk muscles are largely bilaterally controlled and managed with less cortical specificity than limb muscles.',
     facts:['Bilateral cortical control of trunk means that even after a unilateral stroke, trunk function often recovers faster than limb function.',
-           'Respiratory muscles controlling breath support for speech are included in this region.']
+           'Voluntary trunk and abdominal control used for breath support during speech comes from motor cortex, while automatic breathing is driven by the brainstem.']
   },
   { label:'Shoulder',
     mx:0.463, my:0.230,
@@ -405,14 +408,14 @@ const BODY_PARTS = [
     cortSize:0.70, speech:false,
     desc:'Large cortical representation. The hand requires enormous neural resources for fine, independent movements. The "hand knob" is a visible anatomical landmark on the precentral gyrus.',
     facts:['The omega-shaped "hand knob" on the precentral gyrus is visible on MRI and used as a landmark in neurosurgical planning.',
-           'Humans have uniquely large hand representations compared to other primates — directly linked to tool use and manipulation.']
+           'The hand has a disproportionately large cortical representation, reflecting fine manipulation and tool use.']
   },
   { label:'Fingers',
     mx:0.425, my:0.345,
     cortSize:0.90, speech:false,
     desc:'Among the largest cortical representations in the body. Independent finger movement requires extraordinarily precise cortical control.',
     facts:['The disproportionate finger representation reflects evolutionary pressure for fine manipulation — the same principle applies to lips and tongue for speech.',
-           'A trained musician has measurably larger finger representations on MRI than a non-musician — cortical representation is use-dependent.']
+           'Imaging studies of string players have shown enlarged finger representations in somatosensory cortex compared with non-musicians, one example of use-dependent plasticity.']
   },
   { label:'Face',
     mx:0.421, my:0.382,
@@ -424,15 +427,15 @@ const BODY_PARTS = [
   { label:'Lips',
     mx:0.406, my:0.415,
     cortSize:1.00, speech:true,
-    desc:'The single largest cortical representation of any structure. Lips require extraordinary fine motor control for speech — bilabial sounds (/p/, /b/, /m/) and labiodental sounds (/f/, /v/).',
-    facts:['Lip representation rivals or exceeds that of the entire leg — reflecting the precision required for speech articulation.',
+    desc:'One of the largest cortical representations in the body, comparable to the hand. Lips require extraordinary fine motor control for speech — bilabial sounds (/p/, /b/, /m/) and labiodental sounds (/f/, /v/).',
+    facts:['Lip representation is disproportionately large relative to its physical size, reflecting the precision required for speech articulation.',
            'Even subtle UMN lesions affecting the lip area can produce perceptible changes in speech — slurred bilabials, reduced lip rounding.']
   },
   { label:'Jaw',
     mx:0.399, my:0.440,
     cortSize:0.70, speech:true,
-    desc:'Controls mandibular elevation and depression. Jaw height directly influences vowel quality — lower jaw = lower F1. Receives input from CN V.',
-    facts:['Jaw movements are among the slowest articulatory gestures — about 4–5 Hz maximum — compared to tongue movements at 7–8 Hz.',
+    desc:'Controls mandibular elevation and depression. Jaw height influences vowel quality: a lower, more open jaw raises F1; a higher, more closed jaw lowers it. Jaw muscles are innervated by CN V.',
+    facts:['The jaw is the heaviest articulator, moves more slowly than the tongue tip or lips, and provides the basic open-close cycle of syllables.',
            'CN V (trigeminal) motor branch controls masseter and temporalis for jaw closure. Sensory feedback informs jaw positioning during speech.']
   },
   { label:'Tongue',
@@ -452,9 +455,9 @@ const BODY_PARTS = [
   { label:'Larynx',
     mx:0.432, my:0.514,
     cortSize:0.55, speech:true,
-    desc:'Most lateral speech structure. Controls intrinsic laryngeal muscles for voicing, pitch, and phonatory onset via the recurrent laryngeal nerve (CN X branch).',
+    desc:'Most lateral speech structure. Controls intrinsic laryngeal muscles for voicing, pitch, and phonatory onset via two branches of the vagus (CN X): the recurrent laryngeal nerve (most intrinsic muscles) and the superior laryngeal nerve (cricothyroid, for pitch).',
     facts:['The left RLN loops under the aortic arch — making it uniquely vulnerable to thoracic pathology, aneurysm, and surgical trauma.',
-           'Cortical control of the larynx is predominantly contralateral and bilateral — unilateral strokes rarely cause complete aphonia.']
+           'Cortical input to the laryngeal motor neurons is largely bilateral, so a unilateral stroke rarely causes complete aphonia.']
   },
 ];
 
@@ -484,101 +487,121 @@ function labelBox(c, txt, x, y, col, bold, align){
   c.fillStyle = 'rgba(4,10,24,0.85)';  // solid dark bg
   c.beginPath(); c.roundRect(bx, y - fSize, tw + pad*2, fSize + pad*2, 3); c.fill();
   // Border in label color
-  c.strokeStyle = col+'88';
-  c.lineWidth = 1;
+  c.strokeStyle = col;
+  c.lineWidth = 1.5;
   c.beginPath(); c.roundRect(bx, y - fSize, tw + pad*2, fSize + pad*2, 3); c.stroke();
   // Text
   c.fillStyle = col;
   c.font = `${bold?'bold ':''  }${fSize}px Exo 2,sans-serif`;
   c.textAlign = align==='right' ? 'right' : 'left';
-  c.fillText(txt, align==='right' ? x : x + pad, y + 2);
+  c.fillText(txt, x, y + 2);
 }
 
 function drawHomunculus(){
   if(!brainLoaded) return;
   const cv  = document.getElementById('homCanvas');
   const dpr = window.devicePixelRatio||1;
-  const W   = Math.round((cv.parentElement.offsetWidth||600) * 0.75);
-  const H   = Math.round(W * (546/765));
+  const W   = Math.round(cv.parentElement.clientWidth || 600);
+  const imgW = Math.round(W * 0.375);
+  const imgH = Math.round(imgW * (546/765));
+  const padT = 36, padB = 14;
+  const H   = padT + imgH + padB;
+  const offX = Math.round((W - imgW)/2);
   cv.width  = Math.round(W*dpr);
   cv.height = Math.round(H*dpr);
   cv.style.width  = W+'px';
   cv.style.height = H+'px';
   const c   = cv.getContext('2d');
   c.setTransform(dpr,0,0,dpr,0,0);
+  c.clearRect(0,0,W,H);
 
-  // brain image
-  c.drawImage(brainImg, 0, 0, W, H);
+  // brain image, centered at half the previous size
+  c.drawImage(brainImg, offX, padT, imgW, imgH);
 
   const mCol = '#b8d9ec';  // matches frontal lobe blue
   const sCol = '#f0ee98';  // matches parietal lobe yellow
+  const DARK = 'rgba(4,10,24,0.9)';
   const sel  = BODY_PARTS[homIdx];
+  const pt = (bp,type)=>({
+    x: offX + (bp.mx + (type==='motor'?0:SEN_DX)) * imgW,
+    y: padT + (bp.my + (type==='motor'?0:SEN_DY)) * imgH
+  });
 
-  // ── Draw strip paths ──
+  // ── strip paths + inactive dots (dark underlay so they read on the pastel image) ──
   ['motor','sensory'].forEach(type=>{
-    const col   = type==='motor' ? mCol : sCol;
-    const fn    = type==='motor' ? mCoords : sCoords;
+    const col = type==='motor' ? mCol : sCol;
     c.beginPath();
     BODY_PARTS.forEach((bp,i)=>{
-      const {x,y} = fn(bp,W,H);
-      if(i===0) c.moveTo(x,y); else c.lineTo(x,y);
+      const p = pt(bp,type);
+      if(i===0) c.moveTo(p.x,p.y); else c.lineTo(p.x,p.y);
     });
-    c.strokeStyle=`${col}55`; c.lineWidth=2; c.setLineDash([3,4]); c.stroke();
+    c.lineJoin='round';
+    c.setLineDash([]); c.strokeStyle='rgba(4,10,24,0.45)'; c.lineWidth=3.5; c.stroke();
+    c.setLineDash([3,4]); c.strokeStyle=col; c.lineWidth=1.5; c.stroke();
     c.setLineDash([]);
-
-    // inactive dots
     BODY_PARTS.forEach((bp,i)=>{
       if(i===homIdx) return;
-      const {x,y} = fn(bp,W,H);
-      c.beginPath(); c.arc(x,y, bp.speech?4:3, 0, Math.PI*2);
-      c.fillStyle = bp.speech ? `${col}99` : 'rgba(255,255,255,0.25)';
+      const p = pt(bp,type);
+      c.beginPath(); c.arc(p.x,p.y, bp.speech?3.5:2.5, 0, Math.PI*2);
+      c.fillStyle = bp.speech ? col : 'rgba(255,255,255,0.6)';
       c.fill();
+      c.lineWidth=1; c.strokeStyle=DARK; c.stroke();
     });
   });
 
-  // ── Permanent MOTOR header (left/anterior side) ──
-  const mFirst = mCoords(BODY_PARTS[0], W, H);
-  labelBox(c, 'MOTOR', mFirst.x - 14, mFirst.y - 6, mCol, true, 'right');
+  // ── column headers in the margins, above the active label rows ──
+  labelBox(c, 'MOTOR',   offX - 16,        16.5, mCol, true, 'right');
+  labelBox(c, 'SENSORY', offX + imgW + 16, 16.5, sCol, true, 'left');
 
-  // ── Permanent SENSORY header (right/posterior side) ──
-  const sFirst = sCoords(BODY_PARTS[0], W, H);
-  labelBox(c, 'SENSORY', sFirst.x + 14, sFirst.y - 6, sCol, true, 'left');
+  // ── active body part ──
+  const mPt = pt(sel,'motor'), sPt = pt(sel,'sensory');
+  const sep = Math.hypot(sPt.x-mPt.x, sPt.y-mPt.y);
+  const dotR  = Math.max(3, Math.min(5.5, sep*0.3));
+  const ringR = Math.min(dotR+4, sep*0.5+1);
+  const pts = [[mPt,mCol],[sPt,sCol]];
 
-  // ── Active dots + labels for selected body part ──
-  // Motor dot + label
-  const mPt = mCoords(sel, W, H);
-  c.shadowColor=mCol; c.shadowBlur=16;
-  c.beginPath(); c.arc(mPt.x, mPt.y, 8, 0, Math.PI*2);
-  c.fillStyle=mCol; c.fill();
-  c.shadowBlur=0;
-  c.strokeStyle='#0f2038'; c.lineWidth=2;
-  c.beginPath(); c.arc(mPt.x, mPt.y, 8, 0, Math.PI*2); c.stroke();
+  // leader lines out to the margin labels
+  const leader = (x1,y,x2,col)=>{
+    c.lineCap='round';
+    c.beginPath(); c.moveTo(x1,y); c.lineTo(x2,y);
+    c.strokeStyle=DARK; c.lineWidth=4.5; c.stroke();
+    c.strokeStyle=col;  c.lineWidth=2;   c.stroke();
+    c.lineCap='butt';
+  };
+  leader(mPt.x - ringR, mPt.y, offX - 11,        mCol);
+  leader(sPt.x + ringR, sPt.y, offX + imgW + 11, sCol);
 
-  // Sensory dot + label
-  const sPt = sCoords(sel, W, H);
-  c.shadowColor=sCol; c.shadowBlur=16;
-  c.beginPath(); c.arc(sPt.x, sPt.y, 8, 0, Math.PI*2);
-  c.fillStyle=sCol; c.fill();
-  c.shadowBlur=0;
-  c.strokeStyle='#0f2038'; c.lineWidth=2;
-  c.beginPath(); c.arc(sPt.x, sPt.y, 8, 0, Math.PI*2); c.stroke();
-
-  // Motor label: to the LEFT (anterior) of motor dot
-  const mLabelX = mPt.x - 13;
-  const mLabelY = mPt.y + 4;
-  labelBox(c, sel.label, mLabelX, mLabelY, mCol, true, 'right');
-
-  // Sensory label: to the RIGHT (posterior) of sensory dot
-  const sLabelX = sPt.x + 13;
-  const sLabelY = sPt.y + 4;
-  labelBox(c, sel.label, sLabelX, sLabelY, sCol, true, 'left');
-
-  // Cortical size bar (between the two dots, small)
-  const midX = (mPt.x + sPt.x)/2;
-  const midY = (mPt.y + sPt.y)/2;
+  // schematic cortical-size bar, just below the dot pair
   const barLen = Math.round(sel.cortSize * 36);
-  c.fillStyle='rgba(255,255,255,0.25)';
-  c.beginPath(); c.roundRect(midX - barLen/2, midY - 2, barLen, 4, 2); c.fill();
+  const bx = (mPt.x + sPt.x)/2, by = (mPt.y + sPt.y)/2 + 14;
+  c.fillStyle=DARK;
+  c.beginPath(); c.roundRect(bx - barLen/2 - 2, by - 4, barLen + 4, 8, 4); c.fill();
+  c.fillStyle='rgba(255,255,255,0.85)';
+  c.beginPath(); c.roundRect(bx - barLen/2, by - 2, barLen, 4, 2); c.fill();
+
+  // glow, then ring outlines, then colored rings, then center dots
+  pts.forEach(([p,col])=>{
+    const g = c.createRadialGradient(p.x,p.y,0, p.x,p.y,20);
+    g.addColorStop(0, col+'bb'); g.addColorStop(1, col+'00');
+    c.fillStyle=g; c.beginPath(); c.arc(p.x,p.y,20,0,Math.PI*2); c.fill();
+  });
+  pts.forEach(([p])=>{
+    c.beginPath(); c.arc(p.x,p.y,ringR,0,Math.PI*2);
+    c.strokeStyle=DARK; c.lineWidth=4; c.stroke();
+  });
+  pts.forEach(([p,col])=>{
+    c.beginPath(); c.arc(p.x,p.y,ringR,0,Math.PI*2);
+    c.strokeStyle=col; c.lineWidth=2; c.stroke();
+  });
+  pts.forEach(([p])=>{
+    c.beginPath(); c.arc(p.x,p.y,dotR,0,Math.PI*2);
+    c.fillStyle='#ffffff'; c.fill();
+    c.lineWidth=1; c.strokeStyle=DARK; c.stroke();
+  });
+
+  // outside callout labels (box center sits on the leader line)
+  labelBox(c, sel.label, offX - 16,        mPt.y + 2.5, mCol, true, 'right');
+  labelBox(c, sel.label, offX + imgW + 16, sPt.y + 2.5, sCol, true, 'left');
 }
 
 function onHomSlide(){
@@ -711,7 +734,7 @@ const DISORDERS = [
     desc:'When the auditory feedback loop is disrupted — as in auditory processing disorder (APD), sudden hearing loss, or peripheral hearing impairment — the speaker loses the ability to accurately monitor and correct their own speech output. The production stages are all intact; the problem is that the system receives degraded or absent feedback from what was produced.',
     facts:[
       'Speakers with severe or sudden hearing loss often develop secondary changes in voice quality, pitch, loudness, and articulation over time — because self-monitoring is no longer accurate.',
-      'Delayed auditory feedback (DAF) in research settings demonstrates how dependent fluent speech is on real-time acoustic feedback — even small delays cause stuttering-like disruptions in normal speakers.',
+      'Delayed auditory feedback (DAF) in research settings demonstrates how dependent fluent speech is on real-time acoustic feedback — delays on the order of 200 ms (roughly 150 to 250) reliably disrupt fluent speakers, producing slowed rate and stuttering-like repetitions.',
       'APD differs from peripheral hearing loss: pure-tone thresholds may be normal, but the CNS cannot accurately decode what arrives from the cochlea.'
     ]
   },
